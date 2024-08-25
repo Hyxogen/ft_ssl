@@ -1,0 +1,130 @@
+#include <assert.h>
+#include <ft/string.h>
+#include <ssl/math.h>
+#include <ssl/md5.h>
+
+/*
+	import math
+
+	print("static const u32 MD5_K[64] = {")
+	c=2**32
+	for i in range(0, 64):
+	    print("0x{:08x},".format(math.floor(c * abs(math.sin(i + 1)))))
+
+	print("};");
+*/
+static const u32 MD5_K[64] = {
+    0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a,
+    0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
+    0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821, 0xf61e2562, 0xc040b340,
+    0x265e5a51, 0xe9b6c7aa, 0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
+    0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed, 0xa9e3e905, 0xfcefa3f8,
+    0x676f02d9, 0x8d2a4c8a, 0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
+    0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70, 0x289b7ec6, 0xeaa127fa,
+    0xd4ef3085, 0x04881d05, 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
+    0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039, 0x655b59c3, 0x8f0ccc92,
+    0xffeff47d, 0x85845dd1, 0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
+    0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
+};
+
+static const u8 MD5_ROTTABLE[64] = {
+    7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, /* round 1 */
+    5, 9,  14, 20, 5, 9,  14, 20, 5, 9,	 14, 20, 5, 9,	14, 20, /* round 2 */
+    4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, /* round 3 */
+    6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, /* round 4 */
+};
+
+//TODO make seperate functions for the non-linear transformation functions
+static void md5_process_chunk(struct md5_ctx *ctx)
+{
+	u32 saved[4];
+
+	assert(ctx->nwritten && !(ctx->nwritten % sizeof(ctx->chunk)));
+	ft_memcpy(saved, ctx->state, sizeof(saved));
+
+	for (int i = 0; i < 64; i++) {
+		u32 f, g;
+
+		if (i < 16) {
+			f = (saved[MD5_B] & saved[MD5_C]) |
+			    ((~saved[MD5_B]) & saved[MD5_D]);
+			g = i;
+		} else if (i < 32) {
+			f = (saved[MD5_D] & saved[MD5_B]) |
+			    ((~saved[MD5_D]) & saved[MD5_C]);
+			g = ((i * 5) + 1) % 16;
+		} else if (i < 48) {
+			f = saved[MD5_B] ^ saved[MD5_C] ^ saved[MD5_D];
+			g = ((i * 3) + 5) % 16;
+		} else {
+			f = saved[MD5_C] ^ (saved[MD5_B] | (~saved[MD5_D]));
+			g = (i * 7) % 16;
+		}
+
+		f = f + saved[MD5_A] + MD5_K[i] + ctx->chunk.words[g];
+
+		saved[MD5_A] = saved[MD5_D];
+		saved[MD5_D] = saved[MD5_C];
+		saved[MD5_C] = saved[MD5_B];
+		saved[MD5_B] = saved[MD5_B] + ssl_rotleft32(f, MD5_ROTTABLE[i]);
+	}
+
+	for (int i = 0; i < 4; i++)
+		ctx->state[i] += saved[i];
+}
+
+int md5_init(struct md5_ctx *ctx)
+{
+	ft_memset(&ctx->chunk, 0, sizeof(ctx->chunk));
+
+	ctx->state[MD5_A] = 0x67452301;
+	ctx->state[MD5_B] = 0xefcdab89;
+	ctx->state[MD5_C] = 0x98badcfe;
+	ctx->state[MD5_D] = 0x10325476;
+
+	ctx->nwritten = 0;
+
+	return 0;
+}
+
+void md5_free(struct md5_ctx *ctx)
+{
+	(void)ctx;
+}
+
+//TODO rename to md5_update
+size_t md5_write(struct md5_ctx *ctx, const void *buf, size_t n)
+{
+	size_t offset = (ctx->nwritten % sizeof(ctx->chunk));
+	size_t left = sizeof(ctx->chunk) - (offset);
+
+	size_t to_copy = left > n ? n : left;
+
+	ft_memcpy(&ctx->chunk.bytes[offset], buf, to_copy);
+	ctx->nwritten += to_copy;
+
+	if (to_copy == left)
+		md5_process_chunk(ctx);
+
+	return to_copy;
+}
+
+static void md5_pad(struct md5_ctx *ctx)
+{
+	u64 len = ctx->nwritten << 3;
+
+	md5_write(ctx, "\x80", 1);
+
+	while ((ctx->nwritten % 64) != 56)
+		md5_write(ctx, "\x00", 1);
+
+	md5_write(ctx, &len, sizeof(len));
+}
+
+size_t md5_finalize(struct md5_ctx *ctx, unsigned char *dest)
+{
+	md5_pad(ctx);
+
+	ft_memcpy(dest, ctx->state, sizeof(ctx->state));
+	return sizeof(ctx->state);
+}
