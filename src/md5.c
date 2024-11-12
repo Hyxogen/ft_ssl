@@ -3,6 +3,9 @@
 #include <ssl/math.h>
 #include <ssl/md5.h>
 
+//TODO make sure that code works on little and big endian (preferably all
+//endiannes)
+
 /*
 	import math
 
