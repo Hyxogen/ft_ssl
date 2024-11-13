@@ -2,9 +2,7 @@
 #include <ft/string.h>
 #include <ssl/math.h>
 #include <ssl/md5.h>
-
-//TODO make sure that code works on little and big endian (preferably all
-//endiannes)
+#include <common/endian.h>
 
 /*
 	import math
@@ -64,7 +62,7 @@ static void md5_process_chunk(struct md5_ctx *ctx)
 			g = (i * 7) % 16;
 		}
 
-		f = f + saved[MD5_A] + MD5_K[i] + ctx->chunk.words[g];
+		f = f + saved[MD5_A] + MD5_K[i] + from_le32(ctx->chunk.words[g]);
 
 		saved[MD5_A] = saved[MD5_D];
 		saved[MD5_D] = saved[MD5_C];
@@ -119,6 +117,8 @@ static void md5_pad(struct md5_ctx *ctx)
 
 	while ((ctx->nwritten % 64) != 56)
 		md5_update(ctx, "\x00", 1);
+
+	len = to_le64(len);
 
 	md5_update(ctx, &len, sizeof(len));
 }
