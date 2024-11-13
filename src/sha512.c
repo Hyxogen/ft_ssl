@@ -33,7 +33,7 @@ for p in gen_primes(80):
     print("0x{}, ".format(convert_prime(p)))
 print("};")
 */
-static const u64 SHA512_K[80] = {
+static const u64 SHA512_K[SHA512_ROUNDS] = {
     0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f,
     0xe9b5dba58189dbbc, 0x3956c25bf348b538, 0x59f111f1b605d019,
     0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 0xd807aa98a3030242,
@@ -137,7 +137,7 @@ static void sha512_compress(union sha512_hash *prev,
 
 static void sha512_update_hash(union sha512_hash *dest, const union sha512_hash *b)
 {
-	for (unsigned i = 0; i < 8; i++) {
+	for (unsigned i = 0; i < SHA512_HASH_NUM_WORDS; i++) {
 		dest->words[i] += b->words[i];
 	}
 }
@@ -219,7 +219,7 @@ static void sha512_create_hash(unsigned char *dest, const union sha512_hash *has
 {
 	u64 *dest64 = (void*) dest;
 
-	for (unsigned i = 0; i < 8; i++) {
+	for (unsigned i = 0; i < SHA512_HASH_NUM_WORDS; i++) {
 		*dest64++ = to_be64(hash->words[i]);
 	}
 }

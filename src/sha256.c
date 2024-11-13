@@ -186,7 +186,7 @@ static void sha256_create_hash(unsigned char *dest, const union sha256_hash *has
 {
 	u32 *dest32 = (void*) dest;
 
-	for (unsigned i = 0; i < SHA256_HASH_NWORDS; i++) {
+	for (unsigned i = 0; i < SHA256_HASH_NUM_WORDS; i++) {
 		*dest32++ = to_be32(hash->words[i]);
 	}
 }

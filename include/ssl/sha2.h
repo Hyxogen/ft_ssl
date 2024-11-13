@@ -6,13 +6,14 @@
 
 #define SHA256_BLOCK_LEN 64
 #define SHA256_ROUNDS 64
-#define SHA256_HASH_NWORDS 8
+#define SHA256_HASH_NUM_WORDS 8
 
 #define SHA512_BLOCK_LEN 128
 #define SHA512_ROUNDS 80
+#define SHA512_HASH_NUM_WORDS 8
 
 union sha256_hash {
-	u32 words[SHA256_HASH_NWORDS];
+	u32 words[SHA256_HASH_NUM_WORDS];
 	struct {
 		u32 a;
 		u32 b;
@@ -36,10 +37,10 @@ void sha256_init(struct sha256_ctx *ctx);
 void sha256_free(struct sha256_ctx *ctx);
 size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n);
 void sha256_final(struct sha256_ctx *ctx, unsigned char *dest);
-static const size_t sha256_digest_len = SHA256_HASH_NWORDS * sizeof(u32);
+static const size_t sha256_digest_len = SHA256_HASH_NUM_WORDS * sizeof(u32);
 
 union sha512_hash {
-	u64 words[8];
+	u64 words[SHA512_HASH_NUM_WORDS];
 	struct {
 		u64 a;
 		u64 b;
@@ -63,6 +64,6 @@ void sha512_init(struct sha512_ctx *ctx);
 void sha512_free(struct sha512_ctx *ctx);
 size_t sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n);
 void sha512_final(struct sha512_ctx *ctx, unsigned char *dest);
-static const size_t sha512_digest_len = 8 * sizeof(u64);
+static const size_t sha512_digest_len = SHA512_HASH_NUM_WORDS * sizeof(u64);
 
 #endif
