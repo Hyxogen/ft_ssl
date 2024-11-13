@@ -7,8 +7,6 @@
 
 static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
 
-#include <stdio.h>
-
 /*
 	#!/usr/bin/python
 	from gmpy2 import next_prime, mpfr, floor
@@ -96,28 +94,12 @@ static void sha256_generate_w(u32 dest[64], const struct sha256_ctx *ctx)
 	}
 }
 
-static void sha256_dump(const union sha256_state *state)
-{
-	int first = 1;
-	for (unsigned i = 0; i < 8; i++) {
-		if (!first)
-			fprintf(stderr, " ");
-		first = 0;
-
-		fprintf(stderr, "%08x", state->words[i]);
-	}
-}
-
 static void sha256_process_chunk(struct sha256_ctx *ctx)
 {
 	union sha256_state saved = ctx->state;
 
 	u32 w[64];
 	sha256_generate_w(w, ctx);
-
-	/*fprintf(stderr, "init:   ");
-	sha256_dump(&saved);
-	fprintf(stderr, "\n");*/
 
 	for (unsigned j = 0; j < 64; j++) {
 		u32 Wj = w[j];
@@ -134,10 +116,6 @@ static void sha256_process_chunk(struct sha256_ctx *ctx)
 		saved.c = saved.b;
 		saved.b = saved.a;
 		saved.a = T1 + T2;
-
-		/*fprintf(stderr, "t = %02d  ", j);
-		sha256_dump(&saved);
-		fprintf(stderr, "\n");*/
 	}
 
 	for (unsigned i = 0; i < 8; i++) {
