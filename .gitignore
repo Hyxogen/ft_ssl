@@ -1,3 +1,7 @@
 /build
 /compile_commands.json
 /.cache
+/ft_ssl
+/resources
+/*.txt
+/ft_ssl

@@ -95,8 +95,7 @@ void md5_free(struct md5_ctx *ctx)
 	(void)ctx;
 }
 
-//TODO rename to md5_update
-size_t md5_write(struct md5_ctx *ctx, const void *buf, size_t n)
+size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n)
 {
 	size_t offset = (ctx->nwritten % sizeof(ctx->chunk));
 	size_t left = sizeof(ctx->chunk) - (offset);
@@ -116,15 +115,15 @@ static void md5_pad(struct md5_ctx *ctx)
 {
 	u64 len = ctx->nwritten << 3;
 
-	md5_write(ctx, "\x80", 1);
+	md5_update(ctx, "\x80", 1);
 
 	while ((ctx->nwritten % 64) != 56)
-		md5_write(ctx, "\x00", 1);
+		md5_update(ctx, "\x00", 1);
 
-	md5_write(ctx, &len, sizeof(len));
+	md5_update(ctx, &len, sizeof(len));
 }
 
-size_t md5_finalize(struct md5_ctx *ctx, unsigned char *dest)
+size_t md5_final(struct md5_ctx *ctx, unsigned char *dest)
 {
 	md5_pad(ctx);
 

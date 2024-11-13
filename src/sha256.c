@@ -1,7 +1,11 @@
-#include <ssl/sha256.h>
-#include <ssl/math.h>
-#include <ft/string.h>
+#include <assert.h>
 #include <common/endian.h>
+#include <ft/string.h>
+#include <limits.h>
+#include <ssl/math.h>
+#include <ssl/sha2.h>
+
+static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
 
 #include <stdio.h>
 
@@ -56,12 +60,14 @@ static u32 Maj(u32 x, u32 y, u32 z)
 
 static u32 Sigma0(u32 x)
 {
-	return ssl_rotright32(x, 2) ^ ssl_rotright32(x, 13) ^ ssl_rotright32(x, 22);
+	return ssl_rotright32(x, 2) ^ ssl_rotright32(x, 13) ^
+	       ssl_rotright32(x, 22);
 }
 
 static u32 Sigma1(u32 x)
 {
-	return ssl_rotright32(x, 6) ^ ssl_rotright32(x, 11) ^ ssl_rotright32(x, 25);
+	return ssl_rotright32(x, 6) ^ ssl_rotright32(x, 11) ^
+	       ssl_rotright32(x, 25);
 }
 
 static u32 Sigmoid0(u32 x)
@@ -74,9 +80,10 @@ static u32 Sigmoid1(u32 x)
 	return ssl_rotright32(x, 17) ^ ssl_rotright32(x, 19) ^ (x >> 10);
 }
 
-static void generate_w(u32 dest[64], const struct sha256_ctx *ctx)
+static void sha256_generate_w(u32 dest[64], const struct sha256_ctx *ctx)
 {
-	_Static_assert(sizeof(ctx->chunk) == (16 * sizeof(u32)), "basic assumption");
+	_Static_assert(sizeof(ctx->chunk) == (16 * sizeof(u32)),
+		       "basic assumption");
 	ft_memcpy(dest, ctx->chunk.bytes, sizeof(ctx->chunk));
 
 	for (unsigned j = 0; j < 16; j++) {
@@ -101,16 +108,16 @@ static void sha256_dump(const union sha256_state *state)
 	}
 }
 
-static void process_chunk(struct sha256_ctx *ctx)
+static void sha256_process_chunk(struct sha256_ctx *ctx)
 {
 	union sha256_state saved = ctx->state;
 
 	u32 w[64];
-	generate_w(w, ctx);
+	sha256_generate_w(w, ctx);
 
-	fprintf(stderr, "init:   ");
+	/*fprintf(stderr, "init:   ");
 	sha256_dump(&saved);
-	fprintf(stderr, "\n");
+	fprintf(stderr, "\n");*/
 
 	for (unsigned j = 0; j < 64; j++) {
 		u32 Wj = w[j];
@@ -128,9 +135,9 @@ static void process_chunk(struct sha256_ctx *ctx)
 		saved.b = saved.a;
 		saved.a = T1 + T2;
 
-		fprintf(stderr, "t = %02d  ", j);
+		/*fprintf(stderr, "t = %02d  ", j);
 		sha256_dump(&saved);
-		fprintf(stderr, "\n");
+		fprintf(stderr, "\n");*/
 	}
 
 	for (unsigned i = 0; i < 8; i++) {
@@ -153,7 +160,12 @@ int sha256_init(struct sha256_ctx *ctx)
 	return 0;
 }
 
-size_t sha256_write(struct sha256_ctx *ctx, const void *buf, size_t n)
+void sha256_free(struct sha256_ctx *ctx)
+{
+	(void)ctx;
+}
+
+size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n)
 {
 	size_t offset = (ctx->nwritten % sizeof(ctx->chunk));
 	size_t left = sizeof(ctx->chunk) - (offset);
@@ -164,28 +176,28 @@ size_t sha256_write(struct sha256_ctx *ctx, const void *buf, size_t n)
 	ctx->nwritten += to_copy;
 
 	if (to_copy == left)
-		process_chunk(ctx);
+		sha256_process_chunk(ctx);
 
 	return to_copy;
 }
 
-static void do_pad(struct sha256_ctx *ctx)
+static void sha256_do_pad(struct sha256_ctx *ctx)
 {
-	/* length is in bits and has to be calculated here, as sha256_write will
+	/* length is in bits and has to be calculated here, as sha256_update will
 	 * change it*/
-	u64 len = to_be64(ctx->nwritten << 3);
+	u64 len = to_be64(ctx->nwritten * CHAR_BIT);
 
-	sha256_write(ctx, "\x80", 1);
+	sha256_update(ctx, "\x80", 1);
 
 	while ((ctx->nwritten % 64) != 56)
-		sha256_write(ctx, "\x00", 1);
+		sha256_update(ctx, "\x00", 1);
 
-	sha256_write(ctx, &len, sizeof(len));
+	sha256_update(ctx, &len, sizeof(len));
 }
 
-size_t sha256_finalize(struct sha256_ctx *ctx, unsigned char *dest)
+size_t sha256_final(struct sha256_ctx *ctx, unsigned char *dest)
 {
-	do_pad(ctx);
+	sha256_do_pad(ctx);
 
 	for (unsigned i = 0; i < 8; i++) {
 		ctx->state.words[i] = to_be32(ctx->state.words[i]);

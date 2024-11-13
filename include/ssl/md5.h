@@ -22,7 +22,9 @@ struct md5_ctx {
 int md5_init(struct md5_ctx *ctx);
 void md5_free(struct md5_ctx *ctx);
 
-size_t md5_write(struct md5_ctx *ctx, const void *buf, size_t n);
-size_t md5_finalize(struct md5_ctx *ctx, unsigned char *dest);
+size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n);
+size_t md5_final(struct md5_ctx *ctx, unsigned char *dest);
+
+static const size_t md5_digest_len = 4 * sizeof(u32);
 
 #endif
