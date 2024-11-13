@@ -29,10 +29,10 @@ struct sha256_ctx {
 	union sha256_hash hash;
 };
 
-int sha256_init(struct sha256_ctx *ctx);
+void sha256_init(struct sha256_ctx *ctx);
 void sha256_free(struct sha256_ctx *ctx);
 size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n);
-size_t sha256_final(struct sha256_ctx *ctx, unsigned char *dest);
+void sha256_final(struct sha256_ctx *ctx, unsigned char *dest);
 static const size_t sha256_digest_len = SHA256_HASH_NWORDS * sizeof(u32);
 
 #endif

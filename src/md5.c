@@ -74,7 +74,7 @@ static void md5_process_chunk(struct md5_ctx *ctx)
 		ctx->state[i] += saved[i];
 }
 
-int md5_init(struct md5_ctx *ctx)
+void md5_init(struct md5_ctx *ctx)
 {
 	ft_memset(&ctx->chunk, 0, sizeof(ctx->chunk));
 
@@ -84,8 +84,6 @@ int md5_init(struct md5_ctx *ctx)
 	ctx->state[MD5_D] = 0x10325476;
 
 	ctx->nwritten = 0;
-
-	return 0;
 }
 
 void md5_free(struct md5_ctx *ctx)
@@ -123,10 +121,9 @@ static void md5_pad(struct md5_ctx *ctx)
 	md5_update(ctx, &len, sizeof(len));
 }
 
-size_t md5_final(struct md5_ctx *ctx, unsigned char *dest)
+void md5_final(struct md5_ctx *ctx, unsigned char *dest)
 {
 	md5_pad(ctx);
 
 	ft_memcpy(dest, ctx->state, sizeof(ctx->state));
-	return sizeof(ctx->state);
 }

@@ -31,10 +31,7 @@ struct digest {
 	{                                                                \
 		struct name##_ctx *ctx = malloc(sizeof(*ctx));           \
 		if (ctx) {                                               \
-			if (name##_init(ctx)) {                          \
-				free(ctx);                               \
-				ctx = NULL;                              \
-			}                                                \
+			name##_init(ctx);                                \
 		}                                                        \
 		return ctx;                                              \
 	}                                                                \

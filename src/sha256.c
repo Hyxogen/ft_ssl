@@ -132,7 +132,7 @@ static void sha256_transform(union sha256_hash *hash,
 	sha256_update_hash(hash, &saved);
 }
 
-int sha256_init(struct sha256_ctx *ctx)
+void sha256_init(struct sha256_ctx *ctx)
 {
 	ctx->hash.words[0] = 0x6a09e667;
 	ctx->hash.words[1] = 0xbb67ae85;
@@ -144,7 +144,6 @@ int sha256_init(struct sha256_ctx *ctx)
 	ctx->hash.words[7] = 0x5be0cd19;
 
 	ctx->nwritten = 0;
-	return 0;
 }
 
 void sha256_free(struct sha256_ctx *ctx)
@@ -192,9 +191,8 @@ static void sha256_create_hash(unsigned char *dest, const union sha256_hash *has
 	}
 }
 
-size_t sha256_final(struct sha256_ctx *ctx, unsigned char *dest)
+void sha256_final(struct sha256_ctx *ctx, unsigned char *dest)
 {
 	sha256_do_pad(ctx);
 	sha256_create_hash(dest, &ctx->hash);
-	return sizeof(ctx->hash);
 }
