@@ -13,7 +13,7 @@ test_digest() {
 	their="$(cat "$1" | $THEIR "$2" | cut -d ' ' -f 2)"
 
 	if [ $mine != $their ]; then
-		printf "$1" > "fail_$2"
+		cat "$1" > "fail_$2"
 		echo "KO"
 		echo "MINE:  $mine"
 		echo "THEIR: $their"

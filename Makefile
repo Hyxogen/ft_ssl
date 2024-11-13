@@ -17,7 +17,7 @@ CFLAGS		:= -Wall -Wextra -MMD -Iinclude -I$(LIBFT_DIR)/include -masm=intel
 LFLAGS		:=
 
 ifndef config
-	config	:= distr
+	config	:= debug
 endif
 
 
