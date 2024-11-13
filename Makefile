@@ -17,7 +17,7 @@ CFLAGS		:= -Wall -Wextra -MMD -Iinclude -I$(LIBFT_DIR)/include -masm=intel
 LFLAGS		:=
 
 ifndef config
-	config	:= debug
+	config	:= distr
 endif
 
 
@@ -26,7 +26,7 @@ ifeq ($(config),debug)
 else ifeq ($(config),release)
 	CFLAGS	+= -O1 -g -fno-inline
 else ifeq ($(config),distr)
-	CFLAGS	+= -O3 -g0
+	CFLAGS	+= -O3 -g0 -DNDEBUG
 	LFLAGS	+= -flto
 else
 $(error "Unknown config '$(config)'. Available: debug, release, distr")

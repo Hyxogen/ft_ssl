@@ -78,11 +78,9 @@ static u32 Sigmoid1(u32 x)
 	return ssl_rotright32(x, 17) ^ ssl_rotright32(x, 19) ^ (x >> 10);
 }
 
-static void sha256_generate_w(u32 dest[64], const struct sha256_ctx *ctx)
+static void sha256_generate_w(u32 dest[64], u8 block[SHA256_BLOCK_LEN])
 {
-	_Static_assert(sizeof(ctx->chunk) == (16 * sizeof(u32)),
-		       "basic assumption");
-	ft_memcpy(dest, ctx->chunk.bytes, sizeof(ctx->chunk));
+	ft_memcpy(dest, block, SHA256_BLOCK_LEN);
 
 	for (unsigned j = 0; j < 16; j++) {
 		dest[j] = from_be32(dest[j]);
@@ -94,32 +92,33 @@ static void sha256_generate_w(u32 dest[64], const struct sha256_ctx *ctx)
 	}
 }
 
-static void sha256_process_chunk(struct sha256_ctx *ctx)
+static void sha256_transform(union sha256_state *state,
+			     u8 block[SHA256_BLOCK_LEN])
 {
-	union sha256_state saved = ctx->state;
+	union sha256_state tmp = *state;
 
 	u32 w[64];
-	sha256_generate_w(w, ctx);
+	sha256_generate_w(w, block);
 
 	for (unsigned j = 0; j < 64; j++) {
 		u32 Wj = w[j];
 
-		u32 T1 = saved.h + Sigma1(saved.e) +
-			 do_Ch(saved.e, saved.f, saved.g) + SHA256_K[j] + Wj;
-		u32 T2 = Sigma0(saved.a) + Maj(saved.a, saved.b, saved.c);
+		u32 T1 = tmp.h + Sigma1(tmp.e) +
+			 do_Ch(tmp.e, tmp.f, tmp.g) + SHA256_K[j] + Wj;
+		u32 T2 = Sigma0(tmp.a) + Maj(tmp.a, tmp.b, tmp.c);
 
-		saved.h = saved.g;
-		saved.g = saved.f;
-		saved.f = saved.e;
-		saved.e = saved.d + T1;
-		saved.d = saved.c;
-		saved.c = saved.b;
-		saved.b = saved.a;
-		saved.a = T1 + T2;
+		tmp.h = tmp.g;
+		tmp.g = tmp.f;
+		tmp.f = tmp.e;
+		tmp.e = tmp.d + T1;
+		tmp.d = tmp.c;
+		tmp.c = tmp.b;
+		tmp.b = tmp.a;
+		tmp.a = T1 + T2;
 	}
 
 	for (unsigned i = 0; i < 8; i++) {
-		ctx->state.words[i] += saved.words[i];
+		state->words[i] += tmp.words[i];
 	}
 }
 
@@ -145,16 +144,16 @@ void sha256_free(struct sha256_ctx *ctx)
 
 size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n)
 {
-	size_t offset = (ctx->nwritten % sizeof(ctx->chunk));
-	size_t left = sizeof(ctx->chunk) - (offset);
+	size_t offset = (ctx->nwritten % SHA256_BLOCK_LEN);
+	size_t left = SHA256_BLOCK_LEN - offset;
 
 	size_t to_copy = left > n ? n : left;
 
-	ft_memcpy(&ctx->chunk.bytes[offset], buf, to_copy);
+	ft_memcpy(&ctx->block.bytes[offset], buf, to_copy);
 	ctx->nwritten += to_copy;
 
 	if (to_copy == left)
-		sha256_process_chunk(ctx);
+		sha256_transform(&ctx->state, ctx->block.bytes);
 
 	return to_copy;
 }

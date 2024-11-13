@@ -4,6 +4,8 @@
 #include <ssl/types.h>
 #include <stddef.h>
 
+#define SHA256_BLOCK_LEN 64
+
 union sha256_state {
 	u32 words[8];
 	struct {
@@ -20,9 +22,9 @@ union sha256_state {
 
 struct sha256_ctx {
 	union {
-		u32 words[16];
-		u8 bytes[64];
-	} chunk;
+		u32 words[SHA256_BLOCK_LEN / sizeof(u32)];
+		u8 bytes[SHA256_BLOCK_LEN];
+	} block;
 
 	size_t nwritten;
 	union sha256_state state;
