@@ -14,7 +14,7 @@ test_digest() {
 
 	if [ $mine != $their ]; then
 		cat "$1" > "fail_$2"
-		echo "KO"
+		echo "KO $2"
 		echo "MINE:  $mine"
 		echo "THEIR: $their"
 		exit 1

@@ -13,6 +13,7 @@ test_one() {
 
 DURATION=5s
 
-test_one 10s md5 &
-test_one 10s sha256 &
+test_one "$DURATION" md5 &
+test_one "$DURATION" sha256 &
+test_one "$DURATION" sha512 &
 wait
