@@ -21,8 +21,18 @@ test_digest() {
 	fi
 }
 
+FILE="/tmp/test_$1.txt"
+
+echo -n > "$FILE"
+
+test_digest "$FILE" "$1"
+
 while true; do
-	FILE="/tmp/test_$1.txt"
+	SIZE=$(python <<EOF
+import random
+print(random.randrange(0, 2**20))
+EOF
+)
 	cat /dev/random | head -c $RANDOM > "$FILE"
 	test_digest "$FILE" "$1"
 done
