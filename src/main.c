@@ -9,6 +9,7 @@
 #include <errno.h>
 
 static int exec_digest(int argc, char **argv);
+static int do_aes(int argc, char **argv);
 static int print_help(int argc, char **argv);
 
 struct digest {
@@ -81,8 +82,9 @@ static const struct command {
 	int (*exec)(int argc, char **argv);
 } commands[] = {
 #define X(digest_name) {#digest_name, exec_digest},
-SSL_DIGESTS
+    SSL_DIGESTS
 #undef X
+    {"aes", do_aes},
     {NULL, NULL},
 };
 
@@ -144,6 +146,21 @@ static int exec_digest(int argc, char **argv)
 	d->free(ctx);
 	free(res);
 	return rc;
+}
+
+void do_chipher(u8 block[16], const u8 key[16], u8 rounds);
+static int do_aes(int argc, char **argv)
+{
+	(void)argc;
+	(void)argv;
+
+	u8 input[16] = {0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d,
+			0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34};
+	const u8 key[16] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
+			    0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
+
+	do_chipher(input, key, 10);
+	return 0;
 }
 
 static int print_help(int argc, char **argv)
