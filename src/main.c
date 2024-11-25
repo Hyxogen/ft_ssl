@@ -1,5 +1,6 @@
 #include <ssl/md5.h>
 #include <ssl/sha2.h>
+#include <ssl/whirlpool.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <ft/stdio.h>
@@ -23,11 +24,12 @@ struct digest {
 	void (*final)(void *, u8 *dest);
 };
 
-#define SSL_DIGESTS \
-	X(md5)      \
-	X(sha224)   \
-	X(sha256)   \
-	X(sha384)   \
+#define SSL_DIGESTS  \
+	X(md5)       \
+	X(whirlpool) \
+	X(sha224)    \
+	X(sha256)    \
+	X(sha384)    \
 	X(sha512)
 
 #define X(name)                                                          \
