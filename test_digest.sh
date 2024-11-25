@@ -10,7 +10,7 @@ fi
 
 test_digest() {
 	mine="$(cat "$1" | $MINE "$2" | cut -d ' ' -f 2)"
-	their="$(cat "$1" | $THEIR "$2" | cut -d ' ' -f 2)"
+	their="$(cat "$1" | $THEIR dgst -provider legacy "-$2" | cut -d ' ' -f 2)"
 
 	if [ $mine != $their ]; then
 		cat "$1" > "fail_$2"

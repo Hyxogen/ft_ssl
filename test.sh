@@ -17,4 +17,5 @@ test_one "$DURATION" md5 &
 test_one "$DURATION" sha256 &
 test_one "$DURATION" sha384 &
 test_one "$DURATION" sha512 &
+test_one "$DURATION" whirlpool &
 wait
