@@ -3,7 +3,8 @@
 #include <ft/string.h>
 #include <limits.h>
 #include <ssl/math.h>
-#include <ssl/sha2.h>
+#include <ssl/digest/sha2.h>
+#include <ssl/digest/common.h>
 
 static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
 
@@ -143,23 +144,21 @@ void sha256_init(struct sha256_ctx *ctx)
 	ctx->hash.words[6] = 0x1f83d9ab;
 	ctx->hash.words[7] = 0x5be0cd19;
 
+	ctx->offset = 0;
 	ctx->nwritten = 0;
+}
+
+static void sha256_transform_wrapper(void *p)
+{
+	struct sha256_ctx *ctx = p;
+	sha256_transform(&ctx->hash, ctx->block);
 }
 
 size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n)
 {
-	size_t offset = (ctx->nwritten % SHA256_BLOCK_LEN);
-	size_t left = SHA256_BLOCK_LEN - offset;
-
-	size_t to_copy = left > n ? n : left;
-
-	ft_memcpy(&ctx->block[offset], buf, to_copy);
-	ctx->nwritten += to_copy;
-
-	if (to_copy == left)
-		sha256_transform(&ctx->hash, ctx->block);
-
-	return to_copy;
+	dgst_generic_update(ctx->block, SHA256_BLOCK_LEN, &ctx->offset, buf, n, sha256_transform_wrapper, ctx);
+	ctx->nwritten += n;
+	return n;
 }
 
 static void sha256_do_pad(struct sha256_ctx *ctx)

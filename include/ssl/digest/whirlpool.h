@@ -14,8 +14,8 @@ static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
 struct whirlpool_ctx {
 	u8 block[W_BLOCK_SIZE];
 
+	size_t offset;
 	u8 hash[W_BLOCK_SIZE];
-	u8 offset;
 	u8 nwritten[32];
 };
 

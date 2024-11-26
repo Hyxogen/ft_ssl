@@ -1,8 +1,9 @@
+#include <ssl/digest/whirlpool.h>
 #include <ssl/types.h>
-#include <ssl/whirlpool.h>
 #include <ft/string.h>
 #include <common/endian.h>
 #include <ssl/mp.h>
+#include <ssl/digest/common.h>
 
 #define WHIRLPOOL_NROUNDS 10
 
@@ -341,24 +342,19 @@ static void whirlpool_transform(u8 hash[W_BLOCK_SIZE], const u8 block[W_BLOCK_SI
 	}
 }
 
-size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
+static void whirlpool_transform_wrapper(void *p)
 {
-	size_t rem = W_BLOCK_SIZE - ctx->offset;
-
-	if (rem < n)
-		n = rem;
-
-	ft_memcpy(&ctx->block[ctx->offset], buf, n);
-
-	ctx->offset = (ctx->offset + n) % W_BLOCK_SIZE;
-	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
-
-	if (n && !ctx->offset)
-		whirlpool_transform(ctx->hash, ctx->block);
-
-	return n;
+	struct whirlpool_ctx *ctx = p;
+	whirlpool_transform(ctx->hash, ctx->block);
 }
 
+size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
+{
+	dgst_generic_update(ctx->block, W_BLOCK_SIZE, &ctx->offset, buf, n,
+			    whirlpool_transform_wrapper, ctx);
+	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
+	return n;
+}
 
 static void whirlpool_do_pad(struct whirlpool_ctx *ctx)
 {

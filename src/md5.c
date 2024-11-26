@@ -1,8 +1,9 @@
 #include <assert.h>
 #include <ft/string.h>
 #include <ssl/math.h>
-#include <ssl/md5.h>
+#include <ssl/digest/md5.h>
 #include <common/endian.h>
+#include <ssl/digest/common.h>
 
 /*
 	import math
@@ -36,11 +37,10 @@ static const u8 MD5_ROTTABLE[64] = {
 };
 
 //TODO make seperate functions for the non-linear transformation functions
-static void md5_process_chunk(struct md5_ctx *ctx)
+static void md5_transform(struct md5_ctx *ctx)
 {
 	u32 saved[4];
 
-	assert(ctx->nwritten && !(ctx->nwritten % sizeof(ctx->chunk)));
 	ft_memcpy(saved, ctx->state, sizeof(saved));
 
 	for (int i = 0; i < 64; i++) {
@@ -83,23 +83,21 @@ void md5_init(struct md5_ctx *ctx)
 	ctx->state[MD5_C] = 0x98badcfe;
 	ctx->state[MD5_D] = 0x10325476;
 
+	ctx->offset = 0;
 	ctx->nwritten = 0;
+}
+
+static void md5_transform_wrapper(void *p)
+{
+	md5_transform(p);
 }
 
 size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n)
 {
-	size_t offset = (ctx->nwritten % sizeof(ctx->chunk));
-	size_t left = sizeof(ctx->chunk) - (offset);
-
-	size_t to_copy = left > n ? n : left;
-
-	ft_memcpy(&ctx->chunk.bytes[offset], buf, to_copy);
-	ctx->nwritten += to_copy;
-
-	if (to_copy == left)
-		md5_process_chunk(ctx);
-
-	return to_copy;
+	dgst_generic_update(ctx->chunk.bytes, sizeof(ctx->chunk), &ctx->offset,
+			    buf, n, md5_transform_wrapper, ctx);
+	ctx->nwritten += n;
+	return n;
 }
 
 static void md5_pad(struct md5_ctx *ctx)

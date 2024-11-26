@@ -3,8 +3,9 @@
 #include <ft/string.h>
 #include <limits.h>
 #include <ssl/math.h>
-#include <ssl/sha2.h>
 #include <ssl/mp.h>
+#include <ssl/digest/sha2.h>
+#include <ssl/digest/common.h>
 
 static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
 
@@ -167,22 +168,17 @@ void sha512_init(struct sha512_ctx *ctx)
 	mp_init(ctx->nwritten, sizeof(ctx->nwritten));
 }
 
+static void sha512_transform_wrapper(void *p)
+{
+	struct sha512_ctx *ctx = p;
+	sha512_transform(&ctx->hash, ctx->block);
+}
+
 size_t sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n)
 {
-	size_t left = SHA512_BLOCK_LEN - ctx->offset;
-
-	size_t to_copy = left > n ? n : left;
-
-	ft_memcpy(&ctx->block[ctx->offset], buf, to_copy);
-
-	mp_add(ctx->nwritten, sizeof(ctx->nwritten), to_copy * CHAR_BIT);
-
-	ctx->offset = (ctx->offset + to_copy) % SHA512_BLOCK_LEN;
-
-	if (!ctx->offset)
-		sha512_transform(&ctx->hash, ctx->block);
-
-	return to_copy;
+	dgst_generic_update(ctx->block, SHA512_BLOCK_LEN, &ctx->offset, buf, n, sha512_transform_wrapper, ctx);
+	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
+	return n;
 }
 
 static void sha512_do_pad(struct sha512_ctx *ctx)

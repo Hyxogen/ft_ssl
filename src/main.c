@@ -1,6 +1,6 @@
-#include <ssl/md5.h>
-#include <ssl/sha2.h>
-#include <ssl/whirlpool.h>
+#include <ssl/digest/md5.h>
+#include <ssl/digest/sha2.h>
+#include <ssl/digest/whirlpool.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <ft/stdio.h>

@@ -1,4 +1,4 @@
-#include <ssl/sha2.h>
+#include <ssl/digest/sha2.h>
 #include <ft/string.h>
 
 void sha384_init(struct sha384_ctx *ctx)

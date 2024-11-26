@@ -16,6 +16,7 @@ struct md5_ctx {
 	} chunk;
 
 	u32 state[4];
+	size_t offset;
 	u64 nwritten;
 };
 
