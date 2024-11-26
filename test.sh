@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 OURS=./ft_ssl
 THEIRS=openssl
 
@@ -69,7 +68,7 @@ test_one_digest() {
 random_file() {
 	len="$1"
 
-	cat /dev/random | head -c "$len"
+	head -c "$len" /dev/random
 }
 
 do_one_random_test() {
