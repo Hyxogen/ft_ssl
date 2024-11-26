@@ -7,8 +7,12 @@
 #include <common/endian.h>
 
 void mp_init(u8 *string, size_t size);
-/* returns if there was an carry out */
+
+/* returns true if there was an carry out */
 bool mp_add(u8 *string, size_t size, size_t amount);
+/* returns true if there was an carry in */
+bool mp_sub(u8 *string, size_t size, size_t amount);
+
 void mp_encode(u8 *string, size_t size, enum endian endian); 
 
 #endif

@@ -22,6 +22,21 @@ bool mp_add(u8 *string, size_t size, size_t amount)
 	return amount || carry;
 }
 
+bool mp_sub(u8 *string, size_t size, size_t amount)
+{
+	bool carry = false;
+
+	for (size_t i = 0; i < size && (carry || amount); i++) {
+		u8 tmp = string[i] - (u8) amount - carry;
+
+		carry = (amount & 0xff) > (string[i] & 0xff);
+		string[i] = tmp;
+
+		amount >>= 8;
+	}
+	return amount || carry;
+}
+
 static void swap_bytes(u8 *a, u8 *b)
 {
 	u8 tmp = *a;
