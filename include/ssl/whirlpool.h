@@ -15,7 +15,8 @@ struct whirlpool_ctx {
 	u8 block[W_BLOCK_SIZE];
 
 	u8 hash[W_BLOCK_SIZE];
-	u64 nwritten[4];
+	u8 offset;
+	u8 nwritten[32];
 };
 
 void whirlpool_init(struct whirlpool_ctx *ctx);

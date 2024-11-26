@@ -2,6 +2,7 @@
 #include <ssl/whirlpool.h>
 #include <ft/string.h>
 #include <common/endian.h>
+#include <ssl/mp.h>
 
 #define WHIRLPOOL_NROUNDS 10
 
@@ -321,13 +322,12 @@ static void w_cipher(u8 block[W_BLOCK_SIZE], const u8 key[W_BLOCK_SIZE])
 
 void whirlpool_init(struct whirlpool_ctx *ctx)
 {
+	ctx->offset = 0;
 	ft_memset(ctx->hash, 0, W_BLOCK_SIZE);
-
-	for (unsigned i = 0; i < 4; i++) {
-		ctx->nwritten[i] = 0;
-	}
+	mp_init(ctx->nwritten, sizeof(ctx->nwritten));
 }
 
+/* TODO remove free functions */
 void whirlpool_free(struct whirlpool_ctx *ctx)
 {
 	(void) ctx;
@@ -349,16 +349,16 @@ static void whirlpool_transform(u8 hash[W_BLOCK_SIZE], const u8 block[W_BLOCK_SI
 
 size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
 {
-	assert((ctx->nwritten[0] % CHAR_BIT) == 0);
-	size_t offset = ((ctx->nwritten[0] / CHAR_BIT) % W_BLOCK_SIZE);
+	size_t offset = ctx->offset;
 	size_t left = W_BLOCK_SIZE - offset;
 
 	size_t to_copy = left > n ? n : left;
 
 	ft_memcpy(&ctx->block[offset], buf, to_copy);
 
-	ctx->nwritten[0] += to_copy * CHAR_BIT;
-	/* TODO handle overflow */
+	ctx->offset = (ctx->offset + to_copy) % W_BLOCK_SIZE;
+	/* TODO handle carry out */
+	mp_add(ctx->nwritten, sizeof(ctx->nwritten), to_copy * CHAR_BIT);
 
 	if (to_copy == left) {
 		whirlpool_transform(ctx->hash, ctx->block);
@@ -369,28 +369,19 @@ size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
 
 static void whirlpool_do_pad(struct whirlpool_ctx *ctx)
 {
-	/* length is in bits and has to be saved here, as sha512_update
+	/* length is in bits and has to be saved here, as update
 	 * will change it*/
-	u64 saved[4];
+	u8 saved[32];
 
 	ft_memcpy(saved, ctx->nwritten, sizeof(saved));
 
 	whirlpool_update(ctx, "\x80", 1);
 
-	while (((ctx->nwritten[0] / CHAR_BIT) % W_BLOCK_SIZE) !=
-	       (W_BLOCK_SIZE - sizeof(saved)))
+	while ((ctx->offset % W_BLOCK_SIZE) != (W_BLOCK_SIZE - sizeof(saved)))
 		whirlpool_update(ctx, "\x00", 1);
 
-	/* TODO use loops */
-	saved[0] = to_be64(saved[0]);
-	saved[1] = to_be64(saved[1]);
-	saved[2] = to_be64(saved[2]);
-	saved[3] = to_be64(saved[3]);
-
-	whirlpool_update(ctx, &saved[3], sizeof(saved[3]));
-	whirlpool_update(ctx, &saved[2], sizeof(saved[2]));
-	whirlpool_update(ctx, &saved[1], sizeof(saved[1]));
-	whirlpool_update(ctx, &saved[0], sizeof(saved[0]));
+	mp_encode(saved, sizeof(saved), ENDIAN_BIG);
+	whirlpool_update(ctx, saved, sizeof(saved));
 }
 
 static void whirlpool_create_hash(unsigned char *dest,

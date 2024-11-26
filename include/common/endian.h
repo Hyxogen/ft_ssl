@@ -8,6 +8,11 @@
 
 #include <stdint.h>
 
+enum endian {
+	ENDIAN_LITTLE,
+	ENDIAN_BIG,
+};
+
 static inline uint32_t byte_swap32(uint32_t v)
 {
 	uint32_t res = 0;
