@@ -140,10 +140,11 @@ static int exec_digest(int argc, char **argv)
 	if (ctx && res) {
 		rc = do_digest(res, d, ctx);
 		
-		printf("\n%s(stdin)= ", d->name);
+		printf("%s(stdin)= ", d->name);
 		for (size_t i = 0; i < d->digest_len; i++) {
 			printf("%02hhx", res[i]);
 		}
+		printf("\n");
 	}
 	d->free(ctx);
 	free(res);
