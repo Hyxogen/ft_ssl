@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <ssl/math.h>
 #include <ssl/sha2.h>
+#include <ssl/mp.h>
 
 static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
 
@@ -162,29 +163,24 @@ void sha512_init(struct sha512_ctx *ctx)
 	ctx->hash.words[6] = 0x1f83d9abfb41bd6b;
 	ctx->hash.words[7] = 0x5be0cd19137e2179;
 
-	ctx->nwritten[0] = 0;
-	ctx->nwritten[1] = 0;
+	ctx->offset = 0;
+	mp_init(ctx->nwritten, sizeof(ctx->nwritten));
 }
 
 size_t sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n)
 {
-	assert((ctx->nwritten[0] % CHAR_BIT) == 0);
-	size_t offset = ((ctx->nwritten[0] / CHAR_BIT) % SHA512_BLOCK_LEN);
-	size_t left = SHA512_BLOCK_LEN - offset;
+	size_t left = SHA512_BLOCK_LEN - ctx->offset;
 
 	size_t to_copy = left > n ? n : left;
 
-	ft_memcpy(&ctx->block[offset], buf, to_copy);
+	ft_memcpy(&ctx->block[ctx->offset], buf, to_copy);
 
-	u64 saved = ctx->nwritten[0];
-	ctx->nwritten[0] += to_copy * CHAR_BIT;
+	mp_add(ctx->nwritten, sizeof(ctx->nwritten), to_copy * CHAR_BIT);
 
-	if (ctx->nwritten[0] < saved)
-		ctx->nwritten[1] += 1;
+	ctx->offset = (ctx->offset + to_copy) % SHA512_BLOCK_LEN;
 
-	if (to_copy == left) {
+	if (!ctx->offset)
 		sha512_transform(&ctx->hash, ctx->block);
-	}
 
 	return to_copy;
 }
@@ -193,21 +189,18 @@ static void sha512_do_pad(struct sha512_ctx *ctx)
 {
 	/* length is in bits and has to be saved here, as sha512_update
 	 * will change it*/
-	u64 saved[2];
+	u8 saved[16];
 
 	ft_memcpy(saved, ctx->nwritten, sizeof(saved));
 
 	sha512_update(ctx, "\x80", 1);
 
-	while (((ctx->nwritten[0] / CHAR_BIT) % SHA512_BLOCK_LEN) !=
+	while ((ctx->offset % SHA512_BLOCK_LEN) !=
 	       (SHA512_BLOCK_LEN - sizeof(saved)))
 		sha512_update(ctx, "\x00", 1);
 
-	saved[0] = to_be64(saved[0]);
-	saved[1] = to_be64(saved[1]);
-
-	sha512_update(ctx, &saved[1], sizeof(saved[1]));
-	sha512_update(ctx, &saved[0], sizeof(saved[0]));
+	mp_encode(saved, sizeof(saved), ENDIAN_BIG);
+	sha512_update(ctx, saved, sizeof(saved));
 }
 
 static void sha512_create_hash(unsigned char *dest, const union sha512_hash *hash)

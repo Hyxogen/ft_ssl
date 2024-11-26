@@ -72,7 +72,8 @@ union sha512_hash {
 struct sha512_ctx {
 	u8 block[SHA512_BLOCK_LEN];
 
-	u64 nwritten[2];
+	size_t offset;
+	u8 nwritten[16];
 	union sha512_hash hash;
 };
 
