@@ -343,22 +343,21 @@ static void whirlpool_transform(u8 hash[W_BLOCK_SIZE], const u8 block[W_BLOCK_SI
 
 size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
 {
-	size_t offset = ctx->offset;
-	size_t left = W_BLOCK_SIZE - offset;
+	size_t rem = W_BLOCK_SIZE - ctx->offset;
 
-	size_t to_copy = left > n ? n : left;
+	if (rem < n)
+		n = rem;
 
-	ft_memcpy(&ctx->block[offset], buf, to_copy);
+	ft_memcpy(&ctx->block[ctx->offset], buf, n);
 
-	ctx->offset = (ctx->offset + to_copy) % W_BLOCK_SIZE;
+	ctx->offset = (ctx->offset + n) % W_BLOCK_SIZE;
 	/* TODO handle carry out */
-	mp_add(ctx->nwritten, sizeof(ctx->nwritten), to_copy * CHAR_BIT);
+	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
 
-	if (to_copy == left) {
+	if (n && !ctx->offset)
 		whirlpool_transform(ctx->hash, ctx->block);
-	}
 
-	return to_copy;
+	return n;
 }
 
 static u8 zero[128];
