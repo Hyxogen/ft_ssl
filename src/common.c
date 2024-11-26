@@ -3,7 +3,7 @@
 #include <ssl/mp.h>
 #include <limits.h>
 
-static u8 dgst_padding[256];
+static const u8 dgst_padding[256] = { 0x80 };
 
 static size_t dgst_generic_fill(u8 *block, size_t block_size, size_t offset,
 				const u8 *data, size_t n)
@@ -41,11 +41,10 @@ void dgst_generic_pad(u8 *block, size_t block_size, u8 *mp_length,
 		      size_t mp_size, size_t offset, enum endian endian,
 		      void (*transform)(void *), void *opaque)
 {
-	u8 b = 0x80;
+	size_t padding = 1; /* 1 for the 0x80 byte */
 
-	dgst_generic_update(block, block_size, &offset, &b, 1, transform, opaque);
-
-	size_t padding = 0;
+	size_t saved = offset;
+	offset = (offset + 1) % block_size;
 
 	size_t stop = block_size - mp_size;
 	if (offset > stop) {
@@ -54,6 +53,8 @@ void dgst_generic_pad(u8 *block, size_t block_size, u8 *mp_length,
 	} else {
 		padding += stop - offset;
 	}
+
+	offset = saved;
 
 	dgst_generic_update(block, block_size, &offset, dgst_padding, padding, transform, opaque);
 
