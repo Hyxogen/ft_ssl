@@ -113,6 +113,7 @@ do_test_algo() {
 
 if [ -z "$1" ]; then
 	do_test_algo md5 &
+	do_test_algo sha1 &
 	do_test_algo sha224 &
 	do_test_algo sha256 &
 	do_test_algo sha384 &
