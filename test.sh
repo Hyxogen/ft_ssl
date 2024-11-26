@@ -35,7 +35,7 @@ EOF
 }
 
 openssl_digest() {
-	"$THEIRS" dgst -provider legacy "-$1"
+	"$THEIRS" dgst -provider legacy -provider default "-$1"
 }
 
 do_digest() {
