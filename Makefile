@@ -40,8 +40,8 @@ ifeq ($(san), addr)
 	CFLAGS += -fsanitize=address,undefined
 	LFLAGS += -fsanitize=address,undefined
 else ifeq ($(san), mem)
-	CFLAGS += -fsantizie=memory,undefined -fsanitize-memory-track-origins
-	LFLAGS += -fsantizie=memory,undefined -fsanitize-memory-track-origins
+	CFLAGS += -fsanitize=memory,undefined -fsanitize-memory-track-origins
+	LFLAGS += -fsanitize=memory,undefined -fsanitize-memory-track-origins
 else ifeq ($(san), none)
 else
 $(error "$(san): invalid sanitizer")
