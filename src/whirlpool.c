@@ -361,28 +361,6 @@ static void whirlpool_do_pad(struct whirlpool_ctx *ctx)
 	dgst_generic_pad(ctx->block, W_BLOCK_SIZE, ctx->nwritten,
 			 sizeof(ctx->nwritten), ctx->offset, ENDIAN_BIG,
 			 whirlpool_transform_wrapper, ctx);
-
-	return;
-	static const u8 zeros[W_BLOCK_SIZE];
-
-	/* length is in bits and has to be saved here, as update
-	 * will change it*/
-	u8 saved[32];
-
-	ft_memcpy(saved, ctx->nwritten, sizeof(saved));
-
-	whirlpool_update(ctx, "\x80", 1);
-
-	size_t stop = W_BLOCK_SIZE - sizeof(saved);
-	if (ctx->offset > stop) {
-		whirlpool_update(ctx, zeros, W_BLOCK_SIZE - ctx->offset);
-		whirlpool_update(ctx, zeros, stop);
-	} else if (ctx->offset < stop) {
-		whirlpool_update(ctx, zeros, stop - ctx->offset);
-	}
-
-	mp_encode(saved, sizeof(saved), ENDIAN_BIG);
-	whirlpool_update(ctx, saved, sizeof(saved));
 }
 
 static void whirlpool_create_hash(unsigned char *dest,
