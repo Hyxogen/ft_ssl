@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -ex
+set -x
 OURS=./ft_ssl
 THEIRS=openssl
 
