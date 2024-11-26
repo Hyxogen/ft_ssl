@@ -20,7 +20,6 @@ struct md5_ctx {
 };
 
 void md5_init(struct md5_ctx *ctx);
-void md5_free(struct md5_ctx *ctx);
 
 size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n);
 void md5_final(struct md5_ctx *ctx, unsigned char *dest);

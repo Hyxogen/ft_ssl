@@ -86,11 +86,6 @@ void md5_init(struct md5_ctx *ctx)
 	ctx->nwritten = 0;
 }
 
-void md5_free(struct md5_ctx *ctx)
-{
-	(void)ctx;
-}
-
 size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n)
 {
 	size_t offset = (ctx->nwritten % sizeof(ctx->chunk));

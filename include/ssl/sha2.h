@@ -42,7 +42,6 @@ struct sha256_ctx {
 };
 
 void sha256_init(struct sha256_ctx *ctx);
-void sha256_free(struct sha256_ctx *ctx);
 size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n);
 void sha256_final(struct sha256_ctx *ctx, unsigned char *dest);
 static const size_t sha256_digest_len = SHA256_DIGEST_LEN;
@@ -52,7 +51,6 @@ struct sha224_ctx {
 };
 
 void sha224_init(struct sha224_ctx *ctx);
-void sha224_free(struct sha224_ctx *ctx);
 size_t sha224_update(struct sha224_ctx *ctx, const void *buf, size_t n);
 void sha224_final(struct sha224_ctx *ctx, unsigned char *dest);
 static const size_t sha224_digest_len = SHA224_DIGEST_LEN;
@@ -79,7 +77,6 @@ struct sha512_ctx {
 };
 
 void sha512_init(struct sha512_ctx *ctx);
-void sha512_free(struct sha512_ctx *ctx);
 size_t sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n);
 void sha512_final(struct sha512_ctx *ctx, unsigned char *dest);
 static const size_t sha512_digest_len = SHA512_DIGEST_LEN;
@@ -89,7 +86,6 @@ struct sha384_ctx {
 };
 
 void sha384_init(struct sha384_ctx *ctx);
-void sha384_free(struct sha384_ctx *ctx);
 size_t sha384_update(struct sha384_ctx *ctx, const void *buf, size_t n);
 void sha384_final(struct sha384_ctx *ctx, unsigned char *dest);
 static const size_t sha384_digest_len = SHA384_DIGEST_LEN;

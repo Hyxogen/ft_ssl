@@ -146,11 +146,6 @@ void sha256_init(struct sha256_ctx *ctx)
 	ctx->nwritten = 0;
 }
 
-void sha256_free(struct sha256_ctx *ctx)
-{
-	(void)ctx;
-}
-
 size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n)
 {
 	size_t offset = (ctx->nwritten % SHA256_BLOCK_LEN);

@@ -20,7 +20,6 @@ struct whirlpool_ctx {
 };
 
 void whirlpool_init(struct whirlpool_ctx *ctx);
-void whirlpool_free(struct whirlpool_ctx *ctx);
 size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n);
 void whirlpool_final(struct whirlpool_ctx *ctx, unsigned char *dest);
 static const size_t whirlpool_digest_len = W_BLOCK_SIZE;

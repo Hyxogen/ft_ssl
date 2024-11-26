@@ -166,11 +166,6 @@ void sha512_init(struct sha512_ctx *ctx)
 	ctx->nwritten[1] = 0;
 }
 
-void sha512_free(struct sha512_ctx *ctx)
-{
-	(void)ctx;
-}
-
 size_t sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n)
 {
 	assert((ctx->nwritten[0] % CHAR_BIT) == 0);

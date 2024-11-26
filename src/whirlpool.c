@@ -327,12 +327,6 @@ void whirlpool_init(struct whirlpool_ctx *ctx)
 	mp_init(ctx->nwritten, sizeof(ctx->nwritten));
 }
 
-/* TODO remove free functions */
-void whirlpool_free(struct whirlpool_ctx *ctx)
-{
-	(void) ctx;
-}
-
 static void whirlpool_transform(u8 hash[W_BLOCK_SIZE], const u8 block[W_BLOCK_SIZE])
 {
 	/* Miyaguchi-Preneel compression function */

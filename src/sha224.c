@@ -15,11 +15,6 @@ void sha224_init(struct sha224_ctx *ctx)
 	ctx->inner.hash.words[7] = 0xbefa4fa4;
 }
 
-void sha224_free(struct sha224_ctx *ctx)
-{
-	sha256_free(&ctx->inner);
-}
-
 size_t sha224_update(struct sha224_ctx *ctx, const void *buf, size_t n)
 {
 	return sha256_update(&ctx->inner, buf, n);

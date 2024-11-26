@@ -44,7 +44,6 @@ struct digest {
                                                                          \
 	static void digest_##name##_free(void *ctx)                      \
 	{                                                                \
-		name##_free(ctx);                                        \
 		free(ctx);                                               \
 	}                                                                \
                                                                          \
