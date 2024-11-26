@@ -94,12 +94,11 @@ static void md5_transform_wrapper(void *p)
 	md5_transform(p);
 }
 
-size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n)
+void md5_update(struct md5_ctx *ctx, const void *buf, size_t n)
 {
 	dgst_generic_update(ctx->chunk.bytes, sizeof(ctx->chunk), &ctx->offset,
 			    buf, n, md5_transform_wrapper, ctx);
 	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
-	return n;
 }
 
 static void md5_pad(struct md5_ctx *ctx)

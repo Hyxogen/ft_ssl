@@ -174,11 +174,10 @@ static void sha512_transform_wrapper(void *p)
 	sha512_transform(&ctx->hash, ctx->block);
 }
 
-size_t sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n)
+void sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n)
 {
 	dgst_generic_update(ctx->block, SHA512_BLOCK_LEN, &ctx->offset, buf, n, sha512_transform_wrapper, ctx);
 	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
-	return n;
 }
 
 static void sha512_do_pad(struct sha512_ctx *ctx)

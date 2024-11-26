@@ -20,7 +20,7 @@ struct digest {
 	void* (*create)(void);
 	void (*free)(void*);
 
-	size_t (*update)(void *, const void *buf, size_t n);
+	void (*update)(void *, const void *buf, size_t n);
 	void (*final)(void *, u8 *dest);
 };
 
@@ -32,30 +32,30 @@ struct digest {
 	X(sha384)    \
 	X(sha512)
 
-#define X(name)                                                          \
-	static void *digest_##name##_create(void)                        \
-	{                                                                \
-		struct name##_ctx *ctx = malloc(sizeof(*ctx));           \
-		if (ctx) {                                               \
-			name##_init(ctx);                                \
-		}                                                        \
-		return ctx;                                              \
-	}                                                                \
-                                                                         \
-	static void digest_##name##_free(void *ctx)                      \
-	{                                                                \
-		free(ctx);                                               \
-	}                                                                \
-                                                                         \
-	static size_t digest_##name##_update(void *ctx, const void *buf, \
-					     size_t n)                   \
-	{                                                                \
-		return name##_update(ctx, buf, n);                       \
-	}                                                                \
-                                                                         \
-	static void digest_##name##_final(void *ctx, u8 *dest)           \
-	{                                                                \
-		name##_final(ctx, dest);                                 \
+#define X(name)                                                        \
+	static void *digest_##name##_create(void)                      \
+	{                                                              \
+		struct name##_ctx *ctx = malloc(sizeof(*ctx));         \
+		if (ctx) {                                             \
+			name##_init(ctx);                              \
+		}                                                      \
+		return ctx;                                            \
+	}                                                              \
+                                                                       \
+	static void digest_##name##_free(void *ctx)                    \
+	{                                                              \
+		free(ctx);                                             \
+	}                                                              \
+                                                                       \
+	static void digest_##name##_update(void *ctx, const void *buf, \
+					   size_t n)                   \
+	{                                                              \
+		name##_update(ctx, buf, n);                            \
+	}                                                              \
+                                                                       \
+	static void digest_##name##_final(void *ctx, u8 *dest)         \
+	{                                                              \
+		name##_final(ctx, dest);                               \
 	}
 
 SSL_DIGESTS
@@ -100,7 +100,7 @@ static const struct digest *find_digest(const char *name)
 
 static int do_digest(u8 *dest, const struct digest *d, void *ctx)
 {
-	char buf[64];
+	char buf[1024];
 
 	while (1) {
 		ssize_t nread = read(0, buf, sizeof(buf));
@@ -113,10 +113,7 @@ static int do_digest(u8 *dest, const struct digest *d, void *ctx)
 		if (!nread)
 			break;
 
-		size_t nwritten = 0;
-
-		while (nwritten < (size_t) nread)
-			nwritten += d->update(ctx, buf + nwritten, nread - nwritten);
+		d->update(ctx, buf, nread);
 	}
 
 	d->final(ctx, dest);

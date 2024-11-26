@@ -155,11 +155,10 @@ static void sha256_transform_wrapper(void *p)
 	sha256_transform(&ctx->hash, ctx->block);
 }
 
-size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n)
+void sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n)
 {
 	dgst_generic_update(ctx->block, SHA256_BLOCK_LEN, &ctx->offset, buf, n, sha256_transform_wrapper, ctx);
 	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
-	return n;
 }
 
 static void sha256_do_pad(struct sha256_ctx *ctx)

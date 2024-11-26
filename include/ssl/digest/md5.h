@@ -21,10 +21,8 @@ struct md5_ctx {
 };
 
 void md5_init(struct md5_ctx *ctx);
-
-size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n);
+void md5_update(struct md5_ctx *ctx, const void *buf, size_t n);
 void md5_final(struct md5_ctx *ctx, unsigned char *dest);
-
 static const size_t md5_digest_len = 4 * sizeof(u32);
 
 #endif

@@ -348,12 +348,11 @@ static void whirlpool_transform_wrapper(void *p)
 	whirlpool_transform(ctx->hash, ctx->block);
 }
 
-size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
+void whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
 {
 	dgst_generic_update(ctx->block, W_BLOCK_SIZE, &ctx->offset, buf, n,
 			    whirlpool_transform_wrapper, ctx);
 	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
-	return n;
 }
 
 static void whirlpool_do_pad(struct whirlpool_ctx *ctx)

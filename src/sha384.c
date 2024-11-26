@@ -15,9 +15,9 @@ void sha384_init(struct sha384_ctx *ctx)
 	ctx->inner.hash.words[7] = 0x47b5481dbefa4fa4;
 }
 
-size_t sha384_update(struct sha384_ctx *ctx, const void *buf, size_t n)
+void sha384_update(struct sha384_ctx *ctx, const void *buf, size_t n)
 {
-	return sha512_update(&ctx->inner, buf, n);
+	sha512_update(&ctx->inner, buf, n);
 }
 
 void sha384_final(struct sha384_ctx *ctx, unsigned char *dest)
