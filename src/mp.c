@@ -11,7 +11,7 @@ bool mp_add(u8 *string, size_t size, size_t amount)
 	bool carry = false;
 
 	for (size_t i = 0; i < size && (carry || amount); i++) {
-		u16 tmp = string[i] + amount + carry;
+		u16 tmp = string[i] + (u8) amount + carry;
 
 		carry = tmp & 0xff00;
 		string[i] = tmp & 0x00ff;
