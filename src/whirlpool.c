@@ -361,6 +361,8 @@ size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
 	return to_copy;
 }
 
+static u8 zero[128];
+
 static void whirlpool_do_pad(struct whirlpool_ctx *ctx)
 {
 	/* length is in bits and has to be saved here, as update
@@ -371,8 +373,13 @@ static void whirlpool_do_pad(struct whirlpool_ctx *ctx)
 
 	whirlpool_update(ctx, "\x80", 1);
 
-	while ((ctx->offset % W_BLOCK_SIZE) != (W_BLOCK_SIZE - sizeof(saved)))
-		whirlpool_update(ctx, "\x00", 1);
+	size_t stop = W_BLOCK_SIZE - sizeof(saved);
+	if (ctx->offset > stop) {
+		whirlpool_update(ctx, zero, W_BLOCK_SIZE - ctx->offset);
+		whirlpool_update(ctx, zero, stop);
+	} else if (ctx->offset < stop) {
+		whirlpool_update(ctx, zero, stop - ctx->offset);
+	}
 
 	mp_encode(saved, sizeof(saved), ENDIAN_BIG);
 	whirlpool_update(ctx, saved, sizeof(saved));
