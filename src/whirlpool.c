@@ -358,6 +358,11 @@ size_t whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n)
 
 static void whirlpool_do_pad(struct whirlpool_ctx *ctx)
 {
+	dgst_generic_pad(ctx->block, W_BLOCK_SIZE, ctx->nwritten,
+			 sizeof(ctx->nwritten), ctx->offset, ENDIAN_BIG,
+			 whirlpool_transform_wrapper, ctx);
+
+	return;
 	static const u8 zeros[W_BLOCK_SIZE];
 
 	/* length is in bits and has to be saved here, as update
