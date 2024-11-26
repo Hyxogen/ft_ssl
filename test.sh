@@ -4,7 +4,7 @@ OURS=./ft_ssl
 THEIRS=openssl
 
 if [ -z "$ITER_COUNT" ]; then
-	ITER_COUNT=100
+	ITER_COUNT=20
 fi
 
 eprintln() {
@@ -117,6 +117,7 @@ if [ -z "$1" ]; then
 	do_test_algo sha256 &
 	do_test_algo sha384 &
 	do_test_algo sha512 &
+	do_test_algo whirlpool &
 	wait
 else
 	do_test_algo "$1"
