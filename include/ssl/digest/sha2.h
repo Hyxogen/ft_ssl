@@ -38,7 +38,7 @@ struct sha256_ctx {
 	u8 block[SHA256_BLOCK_LEN];
 
 	size_t offset;
-	u64 nwritten;
+	u8 nwritten[8];
 	union sha256_hash hash;
 };
 

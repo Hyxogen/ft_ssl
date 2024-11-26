@@ -5,6 +5,7 @@
 #include <ssl/math.h>
 #include <ssl/digest/sha2.h>
 #include <ssl/digest/common.h>
+#include <ssl/mp.h>
 
 static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
 
@@ -145,7 +146,7 @@ void sha256_init(struct sha256_ctx *ctx)
 	ctx->hash.words[7] = 0x5be0cd19;
 
 	ctx->offset = 0;
-	ctx->nwritten = 0;
+	mp_init(ctx->nwritten, sizeof(ctx->nwritten));
 }
 
 static void sha256_transform_wrapper(void *p)
@@ -157,23 +158,15 @@ static void sha256_transform_wrapper(void *p)
 size_t sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n)
 {
 	dgst_generic_update(ctx->block, SHA256_BLOCK_LEN, &ctx->offset, buf, n, sha256_transform_wrapper, ctx);
-	ctx->nwritten += n;
+	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
 	return n;
 }
 
 static void sha256_do_pad(struct sha256_ctx *ctx)
 {
-	/* length is in bits and has to be calculated here, as sha256_update
-	 * will change it*/
-	u64 len = to_be64(ctx->nwritten * CHAR_BIT);
-
-	sha256_update(ctx, "\x80", 1);
-
-	while ((ctx->nwritten % SHA256_BLOCK_LEN) !=
-	       (SHA256_BLOCK_LEN - sizeof(len)))
-		sha256_update(ctx, "\x00", 1);
-
-	sha256_update(ctx, &len, sizeof(len));
+	dgst_generic_pad(ctx->block, SHA256_BLOCK_LEN, ctx->nwritten,
+			 sizeof(ctx->nwritten), ctx->offset, ENDIAN_BIG,
+			 sha256_transform_wrapper, ctx);
 }
 
 static void sha256_create_hash(unsigned char *dest, const union sha256_hash *hash)

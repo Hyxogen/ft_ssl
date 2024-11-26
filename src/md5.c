@@ -4,6 +4,8 @@
 #include <ssl/digest/md5.h>
 #include <common/endian.h>
 #include <ssl/digest/common.h>
+#include <ssl/mp.h>
+#include <limits.h>
 
 /*
 	import math
@@ -84,7 +86,7 @@ void md5_init(struct md5_ctx *ctx)
 	ctx->state[MD5_D] = 0x10325476;
 
 	ctx->offset = 0;
-	ctx->nwritten = 0;
+	mp_init(ctx->nwritten, sizeof(ctx->nwritten));
 }
 
 static void md5_transform_wrapper(void *p)
@@ -96,22 +98,15 @@ size_t md5_update(struct md5_ctx *ctx, const void *buf, size_t n)
 {
 	dgst_generic_update(ctx->chunk.bytes, sizeof(ctx->chunk), &ctx->offset,
 			    buf, n, md5_transform_wrapper, ctx);
-	ctx->nwritten += n;
+	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
 	return n;
 }
 
 static void md5_pad(struct md5_ctx *ctx)
 {
-	u64 len = ctx->nwritten << 3;
-
-	md5_update(ctx, "\x80", 1);
-
-	while ((ctx->nwritten % 64) != 56)
-		md5_update(ctx, "\x00", 1);
-
-	len = to_le64(len);
-
-	md5_update(ctx, &len, sizeof(len));
+	dgst_generic_pad(ctx->chunk.bytes, sizeof(ctx->chunk), ctx->nwritten,
+			 sizeof(ctx->nwritten), ctx->offset, ENDIAN_LITTLE,
+			 md5_transform_wrapper, ctx);
 }
 
 void md5_final(struct md5_ctx *ctx, unsigned char *dest)

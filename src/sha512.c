@@ -183,20 +183,9 @@ size_t sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n)
 
 static void sha512_do_pad(struct sha512_ctx *ctx)
 {
-	/* length is in bits and has to be saved here, as sha512_update
-	 * will change it*/
-	u8 saved[16];
-
-	ft_memcpy(saved, ctx->nwritten, sizeof(saved));
-
-	sha512_update(ctx, "\x80", 1);
-
-	while ((ctx->offset % SHA512_BLOCK_LEN) !=
-	       (SHA512_BLOCK_LEN - sizeof(saved)))
-		sha512_update(ctx, "\x00", 1);
-
-	mp_encode(saved, sizeof(saved), ENDIAN_BIG);
-	sha512_update(ctx, saved, sizeof(saved));
+	dgst_generic_pad(ctx->block, SHA512_BLOCK_LEN, ctx->nwritten,
+			 sizeof(ctx->nwritten), ctx->offset, ENDIAN_BIG,
+			 sha512_transform_wrapper, ctx);
 }
 
 static void sha512_create_hash(unsigned char *dest, const union sha512_hash *hash)
