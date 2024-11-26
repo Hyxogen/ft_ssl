@@ -1,0 +1,25 @@
+name: Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        algo: [md5, sha224, sha256, sha384, sha512, whirlpool]
+        san: [addr, mem]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+      - name: Build
+        run: CC=clang make san=${{ matrix.san }} config=release
+      - name: Test algo
+        run: ./test.sh ${{ matrix.algo }}
