@@ -25,13 +25,9 @@ static const u64 KECCAK_RCON[24] = {
     0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
 };
 
-/* TODO transpose rottable */
 static const u8 KECCAK_ROTTABLE[5][5] = {
-    {0, 36, 3, 41, 18}, /* x = 0 */
-    {1, 44, 10, 45, 2}, /* x = 1 */
-    {62, 6, 43, 15, 61}, /* x = 2 */
-    {28, 55, 25, 21, 56}, /* x = 3 */
-    {27, 20, 39, 8, 14}, /* x = 4 */
+    {0, 1, 62, 28, 27},	 {36, 44, 6, 55, 20}, {3, 10, 43, 25, 39},
+    {41, 45, 15, 21, 8}, {18, 2, 61, 56, 14},
 };
 
 #ifdef FT_SSL_SHA3_DEBUG
@@ -95,7 +91,7 @@ static void keccak_f(u64 state[5][5])
 		for (unsigned y = 0; y < 5; y++) {
 			for (unsigned x = 0; x < 5; x++) {
 				b[(2 * x + 3 * y) % 5][y] = ssl_rotleft64(
-				    state[y][x], KECCAK_ROTTABLE[x][y]);
+				    state[y][x], KECCAK_ROTTABLE[y][x]);
 			}
 		}
 
