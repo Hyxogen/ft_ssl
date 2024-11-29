@@ -85,7 +85,47 @@ static inline uint64_t from_be64(uint64_t v)
 }
 
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-# error "TODO"
+
+static inline uint32_t to_le32(uint32_t v)
+{
+	return byte_swap32(v);
+}
+
+static inline uint32_t from_le32(uint32_t v)
+{
+	return byte_swap32(v);
+}
+
+static inline uint64_t to_le64(uint64_t v)
+{
+	return byte_swap64(v);
+}
+
+static inline uint64_t from_le64(uint64_t v)
+{
+	return byte_swap64(v);
+}
+
+static inline uint32_t to_be32(uint32_t v)
+{
+	return v;
+}
+
+static inline uint32_t from_be32(uint32_t v)
+{
+	return v;
+}
+
+static inline uint64_t to_be64(uint64_t v)
+{
+	return v;
+}
+
+static inline uint64_t from_be64(uint64_t v)
+{
+	return v;
+}
+
 #else
 # error "unsupported endiannes: " ##__BYTE_ORDER__
 #endif
