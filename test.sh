@@ -118,6 +118,7 @@ if [ -z "$1" ]; then
 	do_test_algo sha256 &
 	do_test_algo sha384 &
 	do_test_algo sha512 &
+	do_test_algo sha3-256 &
 	do_test_algo whirlpool &
 	wait
 else

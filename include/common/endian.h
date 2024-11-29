@@ -13,6 +13,8 @@ enum endian {
 	ENDIAN_BIG,
 };
 
+/* TODO add const attribute */
+
 static inline uint32_t byte_swap32(uint32_t v)
 {
 	uint32_t res = 0;

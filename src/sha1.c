@@ -99,6 +99,7 @@ static void sha1_transform_wrapper(void *p)
 void sha1_update(struct sha1_ctx *ctx, const void *buf, size_t n)
 {
 	dgst_generic_update(ctx->block, SHA1_BLOCK_LEN, &ctx->offset, buf, n, sha1_transform_wrapper, ctx);
+	/* TODO check if n * CHAR_BIT wraps around? */
 	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
 }
 

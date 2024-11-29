@@ -1,6 +1,7 @@
 #include <ssl/digest/md5.h>
-#include <ssl/digest/sha2.h>
 #include <ssl/digest/sha1.h>
+#include <ssl/digest/sha2.h>
+#include <ssl/digest/sha3.h>
 #include <ssl/digest/whirlpool.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -25,16 +26,17 @@ struct digest {
 	void (*final)(void *, u8 *dest);
 };
 
-#define SSL_DIGESTS  \
-	X(md5)       \
-	X(whirlpool) \
-	X(sha1)      \
-	X(sha224)    \
-	X(sha256)    \
-	X(sha384)    \
-	X(sha512)
+#define SSL_DIGESTS               \
+	X(md5, "md5")             \
+	X(whirlpool, "whirlpool") \
+	X(sha1, "sha1")           \
+	X(sha224, "sha224")       \
+	X(sha256, "sha256")       \
+	X(sha384, "sha384")       \
+	X(sha512, "sha512")       \
+	X(sha3_256, "sha3-256")
 
-#define X(name)                                                        \
+#define X(name, ident)                                                 \
 	static void *digest_##name##_create(void)                      \
 	{                                                              \
 		struct name##_ctx *ctx = malloc(sizeof(*ctx));         \
@@ -65,9 +67,9 @@ SSL_DIGESTS
 #undef X
 
 static const struct digest digests[] = {
-#define X(digest_name)                               \
+#define X(digest_name, ident)                        \
 	{                                            \
-	    .name = #digest_name,                    \
+	    .name = ident,                          \
 	    .digest_len = digest_name##_digest_len,  \
 	    .create = digest_##digest_name##_create, \
 	    .free = digest_##digest_name##_free,     \
@@ -84,7 +86,7 @@ static const struct command {
 
 	int (*exec)(int argc, char **argv);
 } commands[] = {
-#define X(digest_name) {#digest_name, exec_digest},
+#define X(digest_name, ident) {ident, exec_digest},
     SSL_DIGESTS
 #undef X
     {"aes", do_aes},
@@ -137,12 +139,14 @@ static int exec_digest(int argc, char **argv)
 
 	if (ctx && res) {
 		rc = do_digest(res, d, ctx);
-		
-		printf("%s(stdin)= ", d->name);
-		for (size_t i = 0; i < d->digest_len; i++) {
-			printf("%02hhx", res[i]);
+
+		if (!rc) {
+			printf("%s(stdin)= ", d->name);
+			for (size_t i = 0; i < d->digest_len; i++) {
+				printf("%02hhx", res[i]);
+			}
+			printf("\n");
 		}
-		printf("\n");
 	}
 	d->free(ctx);
 	free(res);
