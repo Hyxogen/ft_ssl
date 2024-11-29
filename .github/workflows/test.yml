@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        algo: [md5, sha224, sha256, sha384, sha512, whirlpool]
+        algo: [md5, sha1, sha224, sha256, sha384, sha512, sha3-256, whirlpool]
         san: [addr, mem]
     steps:
       - name: Checkout repository
