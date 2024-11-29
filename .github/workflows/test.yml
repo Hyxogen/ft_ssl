@@ -22,4 +22,4 @@ jobs:
       - name: Build
         run: CC=clang make san=${{ matrix.san }} config=release
       - name: Test algo
-        run: ./test.sh ${{ matrix.algo }}
+        run: ITER_COUNT=200 ./test.sh ${{ matrix.algo }}
