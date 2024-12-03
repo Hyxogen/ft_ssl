@@ -108,9 +108,16 @@ static void md5_pad(struct md5_ctx *ctx)
 			 md5_transform_wrapper, ctx);
 }
 
+static void md5_create_hash(unsigned char *dest, struct md5_ctx *ctx)
+{
+	for (unsigned i = 0; i < 4; i++) {
+		u32 tmp = to_le32(ctx->state[i]);
+		dest = ft_mempcpy(dest, &tmp, sizeof(tmp));
+	}
+}
+
 void md5_final(struct md5_ctx *ctx, unsigned char *dest)
 {
 	md5_pad(ctx);
-
-	ft_memcpy(dest, ctx->state, sizeof(ctx->state));
+	md5_create_hash(dest, ctx);
 }
