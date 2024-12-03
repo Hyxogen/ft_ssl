@@ -5,6 +5,7 @@
 
 #define SHA3_224_DIGEST_NBYTES 28
 #define SHA3_256_DIGEST_NBYTES 32
+#define SHA3_384_DIGEST_NBYTES 48
 #define SHA3_512_DIGEST_NBYTES 64
 
 struct sha3_ctx {
@@ -62,6 +63,27 @@ static inline void sha3_256_final(struct sha3_256_ctx *ctx, unsigned char *dest)
 }
 
 static const size_t sha3_256_digest_len = SHA3_256_DIGEST_NBYTES;
+
+struct sha3_384_ctx {
+	struct sha3_ctx inner;
+};
+
+static inline void sha3_384_init(struct sha3_384_ctx *ctx)
+{
+	sha3_init(&ctx->inner, SHA3_384_DIGEST_NBYTES);
+}
+
+static inline void sha3_384_update(struct sha3_384_ctx *ctx, const void *buf, size_t len)
+{
+	sha3_update(&ctx->inner, buf, len);
+}
+
+static inline void sha3_384_final(struct sha3_384_ctx *ctx, unsigned char *dest)
+{
+	sha3_final(&ctx->inner, dest, SHA3_384_DIGEST_NBYTES);
+}
+
+static const size_t sha3_384_digest_len = SHA3_384_DIGEST_NBYTES;
 
 struct sha3_512_ctx {
 	struct sha3_ctx inner;
