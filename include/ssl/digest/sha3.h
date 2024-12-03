@@ -39,4 +39,26 @@ static inline void sha3_256_final(struct sha3_256_ctx *ctx, unsigned char *dest)
 /* TODO make define for this 32 */
 static const size_t sha3_256_digest_len = 32;
 
+struct sha3_512_ctx {
+	struct sha3_ctx inner;
+};
+
+static inline void sha3_512_init(struct sha3_512_ctx *ctx)
+{
+	sha3_init(&ctx->inner, 64);
+}
+
+static inline void sha3_512_update(struct sha3_512_ctx *ctx, const void *buf, size_t len)
+{
+	sha3_update(&ctx->inner, buf, len);
+}
+
+static inline void sha3_512_final(struct sha3_512_ctx *ctx, unsigned char *dest)
+{
+	sha3_final(&ctx->inner, dest, 64);
+}
+
+/* TODO make define for this 64 */
+static const size_t sha3_512_digest_len = 64;
+
 #endif
