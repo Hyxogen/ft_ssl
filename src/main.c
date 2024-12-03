@@ -1,3 +1,4 @@
+#include <ssl/digest/md4.h>
 #include <ssl/digest/md5.h>
 #include <ssl/digest/sha1.h>
 #include <ssl/digest/sha2.h>
@@ -27,6 +28,7 @@ struct digest {
 };
 
 #define SSL_DIGESTS               \
+	X(md4, "md4")             \
 	X(md5, "md5")             \
 	X(whirlpool, "whirlpool") \
 	X(sha1, "sha1")           \
