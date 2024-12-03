@@ -75,22 +75,26 @@ do_one_random_test() {
 	algo="$1"
 	len="$2"
 
-	file="/tmp/test_$algo.bin"
+	file="$(mktemp)"
 
 	random_file "$len" > "$file"
 
 	test_one_digest "$algo" "$file"
+
+	rm "$file"
 }
 
 do_one_string_test() {
 	algo="$1"
 	string="$2"
 
-	file="/tmp/test_$algo.bin"
+	file="$(mktemp)"
 
 	printf "$string" > "$file"
 
 	test_one_digest "$algo" "$file"
+
+	rm "$file"
 }
 
 do_test_algo() {
@@ -119,6 +123,7 @@ if [ -z "$1" ]; then
 	do_test_algo sha384 &
 	do_test_algo sha512 &
 	do_test_algo sha3-256 &
+	do_test_algo sha3-512 &
 	do_test_algo whirlpool &
 	wait
 else
