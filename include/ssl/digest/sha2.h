@@ -7,18 +7,18 @@
 #define SHA256_BLOCK_LEN 64
 #define SHA256_ROUNDS 64
 #define SHA256_HASH_NUM_WORDS 8
-#define SHA256_DIGEST_LEN (SHA256_HASH_NUM_WORDS * sizeof(u32))
+#define SHA256_DIGEST_NBYTES (SHA256_HASH_NUM_WORDS * sizeof(u32))
 
 #define SHA224_HASH_NUM_WORDS 7
-#define SHA224_DIGEST_LEN (SHA224_HASH_NUM_WORDS * sizeof(u32))
+#define SHA224_DIGEST_NBYTES (SHA224_HASH_NUM_WORDS * sizeof(u32))
 
 #define SHA512_BLOCK_LEN 128
 #define SHA512_ROUNDS 80
 #define SHA512_HASH_NUM_WORDS 8
-#define SHA512_DIGEST_LEN (SHA512_HASH_NUM_WORDS * sizeof(u64))
+#define SHA512_DIGEST_NBYTES (SHA512_HASH_NUM_WORDS * sizeof(u64))
 
 #define SHA384_HASH_NUM_WORDS 6
-#define SHA384_DIGEST_LEN (SHA384_HASH_NUM_WORDS * sizeof(u64))
+#define SHA384_DIGEST_NBYTES (SHA384_HASH_NUM_WORDS * sizeof(u64))
 
 union sha256_hash {
 	u32 words[SHA256_HASH_NUM_WORDS];
@@ -45,7 +45,7 @@ struct sha256_ctx {
 void sha256_init(struct sha256_ctx *ctx);
 void sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n);
 void sha256_final(struct sha256_ctx *ctx, unsigned char *dest);
-static const size_t sha256_digest_len = SHA256_DIGEST_LEN;
+static const size_t sha256_digest_len = SHA256_DIGEST_NBYTES;
 
 struct sha224_ctx {
 	struct sha256_ctx inner;
@@ -54,7 +54,7 @@ struct sha224_ctx {
 void sha224_init(struct sha224_ctx *ctx);
 void sha224_update(struct sha224_ctx *ctx, const void *buf, size_t n);
 void sha224_final(struct sha224_ctx *ctx, unsigned char *dest);
-static const size_t sha224_digest_len = SHA224_DIGEST_LEN;
+static const size_t sha224_digest_len = SHA224_DIGEST_NBYTES;
 
 union sha512_hash {
 	u64 words[SHA512_HASH_NUM_WORDS];
@@ -81,7 +81,7 @@ struct sha512_ctx {
 void sha512_init(struct sha512_ctx *ctx);
 void sha512_update(struct sha512_ctx *ctx, const void *buf, size_t n);
 void sha512_final(struct sha512_ctx *ctx, unsigned char *dest);
-static const size_t sha512_digest_len = SHA512_DIGEST_LEN;
+static const size_t sha512_digest_len = SHA512_DIGEST_NBYTES;
 
 struct sha384_ctx {
 	struct sha512_ctx inner;
@@ -90,6 +90,6 @@ struct sha384_ctx {
 void sha384_init(struct sha384_ctx *ctx);
 void sha384_update(struct sha384_ctx *ctx, const void *buf, size_t n);
 void sha384_final(struct sha384_ctx *ctx, unsigned char *dest);
-static const size_t sha384_digest_len = SHA384_DIGEST_LEN;
+static const size_t sha384_digest_len = SHA384_DIGEST_NBYTES;
 
 #endif

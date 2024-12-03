@@ -22,8 +22,8 @@ void sha384_update(struct sha384_ctx *ctx, const void *buf, size_t n)
 
 void sha384_final(struct sha384_ctx *ctx, unsigned char *dest)
 {
-	unsigned char buf[SHA512_DIGEST_LEN];
+	unsigned char buf[SHA512_DIGEST_NBYTES];
 
 	sha512_final(&ctx->inner, buf);
-	ft_memcpy(dest, buf, SHA384_DIGEST_LEN);
+	ft_memcpy(dest, buf, SHA384_DIGEST_NBYTES);
 }

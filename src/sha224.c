@@ -22,7 +22,7 @@ void sha224_update(struct sha224_ctx *ctx, const void *buf, size_t n)
 
 void sha224_final(struct sha224_ctx *ctx, unsigned char *dest)
 {
-	unsigned char buf[SHA256_DIGEST_LEN];
+	unsigned char buf[SHA256_DIGEST_NBYTES];
 	sha256_final(&ctx->inner, buf);
-	ft_memcpy(dest, buf, SHA224_DIGEST_LEN);
+	ft_memcpy(dest, buf, SHA224_DIGEST_NBYTES);
 }
