@@ -4,11 +4,6 @@
 #include <stddef.h>
 #include <ssl/types.h>
 
-#define MD5_A 0
-#define MD5_B 1
-#define MD5_C 2
-#define MD5_D 3
-
 struct md5_ctx {
 	union {
 		u32 words[16];
