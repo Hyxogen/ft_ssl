@@ -75,7 +75,7 @@ static u32 md5_i(u32 x, u32 y, u32 z)
 }
 
 static void md5_transform(u32 state[static 4],
-			  const unsigned char block[static 64])
+			  const unsigned char block[static MD5_BLOCK_LEN])
 {
 	u32 saved[4];
 	ft_memcpy(saved, state, sizeof(saved));
