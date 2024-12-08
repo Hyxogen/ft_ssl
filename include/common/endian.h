@@ -11,10 +11,10 @@ enum endian {
 static inline uint32_t from_le32(const unsigned char bytes[static 4])
 {
 	uint32_t res = 0;
-	res |= bytes[0] << 0;
-	res |= bytes[1] << 8;
-	res |= bytes[2] << 16;
-	res |= bytes[3] << 24;
+	res |= (uint32_t) bytes[0] << 0;
+	res |= (uint32_t) bytes[1] << 8;
+	res |= (uint32_t) bytes[2] << 16;
+	res |= (uint32_t) bytes[3] << 24;
 	return res;
 }
 
