@@ -15,8 +15,7 @@
 #define SHA512_ROUNDS 80
 #define SHA512_DIGEST_LEN (512/CHAR_BIT)
 
-#define SHA384_HASH_NUM_WORDS 6
-#define SHA384_DIGEST_NBYTES (SHA384_HASH_NUM_WORDS * sizeof(u64))
+#define SHA384_DIGEST_LEN (384/CHAR_BIT)
 
 struct sha256_ctx {
 	u8 block[SHA256_BLOCK_LEN];
@@ -59,7 +58,6 @@ struct sha384_ctx {
 
 void sha384_init(struct sha384_ctx *ctx);
 void sha384_update(struct sha384_ctx *ctx, const void *buf, size_t n);
-void sha384_final(struct sha384_ctx *ctx, unsigned char *dest);
-static const size_t sha384_digest_len = SHA384_DIGEST_NBYTES;
-
+void sha384_final(unsigned char dest[SHA384_DIGEST_LEN], struct sha384_ctx *ctx);
+static const size_t sha384_digest_len = SHA384_DIGEST_LEN;
 #endif

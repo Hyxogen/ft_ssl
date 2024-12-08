@@ -45,6 +45,7 @@ struct digest {
 	X(md5, "md5")       \
 	X(sha224, "sha224") \
 	X(sha256, "sha256") \
+	X(sha384, "sha384") \
 	X(sha512, "sha512")
 
 #define X(name, ident)                                                    \
