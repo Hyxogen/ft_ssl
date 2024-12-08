@@ -1,11 +1,11 @@
-#include <assert.h>
-#include <ft/string.h>
-#include <ssl/math.h>
-#include <ssl/digest/md5.h>
+#include <common/bitops.h>
 #include <common/endian.h>
-#include <ssl/digest/common.h>
-#include <ssl/mp.h>
+#include <ft/string.h>
 #include <limits.h>
+#include <ssl/digest/md5.h>
+#include <assert.h>
+
+static_assert(CHAR_BIT % 8 == 0, "weird bits per byte");
 
 #define MD5_A 0
 #define MD5_B 1
@@ -18,7 +18,7 @@
 	print("static const u32 MD5_K[64] = {")
 	c=2**32
 	for i in range(0, 64):
-	    print("0x{:08x},".format(math.floor(c * abs(math.sin(i + 1)))))
+		print("0x{:08x},".format(math.floor(c * abs(math.sin(i + 1)))))
 
 	print("};");
 */
@@ -43,86 +43,123 @@ static const u8 MD5_ROTTABLE[64] = {
     6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, /* round 4 */
 };
 
-//TODO make seperate functions for the non-linear transformation functions
-static void md5_transform(struct md5_ctx *ctx)
-{
-	u32 saved[4];
-
-	ft_memcpy(saved, ctx->state, sizeof(saved));
-
-	for (int i = 0; i < 64; i++) {
-		u32 f, g;
-
-		if (i < 16) {
-			f = (saved[MD5_B] & saved[MD5_C]) |
-			    ((~saved[MD5_B]) & saved[MD5_D]);
-			g = i;
-		} else if (i < 32) {
-			f = (saved[MD5_D] & saved[MD5_B]) |
-			    ((~saved[MD5_D]) & saved[MD5_C]);
-			g = ((i * 5) + 1) % 16;
-		} else if (i < 48) {
-			f = saved[MD5_B] ^ saved[MD5_C] ^ saved[MD5_D];
-			g = ((i * 3) + 5) % 16;
-		} else {
-			f = saved[MD5_C] ^ (saved[MD5_B] | (~saved[MD5_D]));
-			g = (i * 7) % 16;
-		}
-
-		f = f + saved[MD5_A] + MD5_K[i] + from_le32(ctx->chunk.words[g]);
-
-		saved[MD5_A] = saved[MD5_D];
-		saved[MD5_D] = saved[MD5_C];
-		saved[MD5_C] = saved[MD5_B];
-		saved[MD5_B] = saved[MD5_B] + ssl_rotleft32(f, MD5_ROTTABLE[i]);
-	}
-
-	for (int i = 0; i < 4; i++)
-		ctx->state[i] += saved[i];
-}
-
 void md5_init(struct md5_ctx *ctx)
 {
-	ft_memset(&ctx->chunk, 0, sizeof(ctx->chunk));
-
 	ctx->state[MD5_A] = 0x67452301;
 	ctx->state[MD5_B] = 0xefcdab89;
 	ctx->state[MD5_C] = 0x98badcfe;
 	ctx->state[MD5_D] = 0x10325476;
 
 	ctx->offset = 0;
-	mp_init(ctx->nwritten, sizeof(ctx->nwritten));
+	ctx->nwritten = 0;
 }
 
-static void md5_transform_wrapper(void *p)
+static u32 md5_f(u32 x, u32 y, u32 z)
 {
-	md5_transform(p);
+	return (x & y) | ((~x) & z);
+}
+
+static u32 md5_g(u32 x, u32 y, u32 z)
+{
+	return (x & z) | (y & (~z));
+}
+
+static u32 md5_h(u32 x, u32 y, u32 z)
+{
+	return x ^ y ^ z;
+}
+
+static u32 md5_i(u32 x, u32 y, u32 z)
+{
+	return y ^ (x | (~z));
+}
+
+static void md5_transform(u32 state[static 4],
+			  const unsigned char block[static 64])
+{
+	u32 saved[4];
+	ft_memcpy(saved, state, sizeof(saved));
+
+	for (unsigned i = 0; i < 64; i++) {
+		u32 f, g;
+
+		if (i < 16) {
+			f = md5_f(state[MD5_B], state[MD5_C], state[MD5_D]);
+			g = i;
+		} else if (i < 32) {
+			f = md5_g(state[MD5_B], state[MD5_C], state[MD5_D]);
+			g = ((i * 5) + 1) % 16;
+		} else if (i < 48) {
+			f = md5_h(state[MD5_B], state[MD5_C], state[MD5_D]);
+			g = ((i * 3) + 5) % 16;
+		} else {
+			f = md5_i(state[MD5_B], state[MD5_C], state[MD5_D]);
+			g = (i * 7) % 16;
+		}
+
+		f = f + state[MD5_A] + MD5_K[i] + from_le32(&block[g * sizeof(u32)]);
+
+		state[MD5_A] = state[MD5_D];
+		state[MD5_D] = state[MD5_C];
+		state[MD5_C] = state[MD5_B];
+		state[MD5_B] = state[MD5_B] + rotleft32(f, MD5_ROTTABLE[i]);
+	}
+
+	for (unsigned i = 0; i < 4; i++) {
+		state[i] += saved[i];
+	}
 }
 
 void md5_update(struct md5_ctx *ctx, const void *buf, size_t n)
 {
-	dgst_generic_update(ctx->chunk.bytes, sizeof(ctx->chunk), &ctx->offset,
-			    buf, n, md5_transform_wrapper, ctx);
-	mp_add(ctx->nwritten, sizeof(ctx->nwritten), n * CHAR_BIT);
+	const unsigned char *cbuf = buf;
+
+	for (size_t i = 0; i < n; i++) {
+		ctx->block[ctx->offset++] = cbuf[i];
+
+		if (ctx->offset >= MD5_BLOCK_LEN) {
+			md5_transform(ctx->state, ctx->block);
+			ctx->offset = 0;
+		}
+	}
+
+	ctx->nwritten += n * CHAR_BIT;
 }
 
-static void md5_pad(struct md5_ctx *ctx)
+static const u8 md5_padding[128] = {0x80};
+
+static void md5_do_pad(struct md5_ctx *ctx)
 {
-	dgst_generic_pad(ctx->chunk.bytes, sizeof(ctx->chunk), ctx->nwritten,
-			 sizeof(ctx->nwritten), ctx->offset, ENDIAN_LITTLE,
-			 md5_transform_wrapper, ctx);
+	size_t padding = 1; /* 1 for the 0x80 byte */
+
+	size_t offset = ctx->offset;
+	offset = (offset + 1) % MD5_BLOCK_LEN;
+
+	size_t stop = MD5_BLOCK_LEN - sizeof(ctx->nwritten);
+	if (offset > stop) {
+		padding += MD5_BLOCK_LEN - offset;
+		padding += stop;
+	} else {
+		padding += stop - offset;
+	}
+
+	unsigned char length[8];
+	to_le64(length, ctx->nwritten);
+
+	md5_update(ctx, md5_padding, padding);
+	md5_update(ctx, length, sizeof(length));
 }
 
-static void md5_create_hash(unsigned char *dest, struct md5_ctx *ctx)
+static void md5_create_hash(unsigned char dest[MD5_DIGEST_LEN],
+			    const u32 state[static 4])
 {
-	for (unsigned i = 0; i < 4; i++) {
-		u32 tmp = to_le32(ctx->state[i]);
-		dest = ft_mempcpy(dest, &tmp, sizeof(tmp));
+	for (size_t i = 0; i < 4; i++) {
+		to_le32(&dest[i * sizeof(u32)], state[i]);
 	}
 }
 
-void md5_final(struct md5_ctx *ctx, unsigned char *dest)
+void md5_final(unsigned char dest[MD5_DIGEST_LEN], struct md5_ctx *ctx)
 {
-	md5_pad(ctx);
-	md5_create_hash(dest, ctx);
+	md5_do_pad(ctx);
+	md5_create_hash(dest, ctx->state);
 }

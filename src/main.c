@@ -13,7 +13,6 @@
 #include <errno.h>
 
 static int exec_digest(int argc, char **argv);
-static int do_aes(int argc, char **argv);
 static int print_help(int argc, char **argv);
 
 struct digest {
@@ -24,10 +23,10 @@ struct digest {
 	void (*free)(void*);
 
 	void (*update)(void *, const void *buf, size_t n);
-	void (*final)(void *, u8 *dest);
+	void (*final)(unsigned char *, void *);
 };
 
-#define SSL_DIGESTS               \
+/*#define SSL_DIGESTS               \
 	X(md4, "md4")             \
 	X(md5, "md5")             \
 	X(whirlpool, "whirlpool") \
@@ -39,32 +38,35 @@ struct digest {
 	X(sha3_224, "sha3-224")   \
 	X(sha3_256, "sha3-256")   \
 	X(sha3_384, "sha3-384")   \
-	X(sha3_512, "sha3-512")
+	X(sha3_512, "sha3-512")*/
 
-#define X(name, ident)                                                 \
-	static void *digest_##name##_create(void)                      \
-	{                                                              \
-		struct name##_ctx *ctx = malloc(sizeof(*ctx));         \
-		if (ctx) {                                             \
-			name##_init(ctx);                              \
-		}                                                      \
-		return ctx;                                            \
-	}                                                              \
-                                                                       \
-	static void digest_##name##_free(void *ctx)                    \
-	{                                                              \
-		free(ctx);                                             \
-	}                                                              \
-                                                                       \
-	static void digest_##name##_update(void *ctx, const void *buf, \
-					   size_t n)                   \
-	{                                                              \
-		name##_update(ctx, buf, n);                            \
-	}                                                              \
-                                                                       \
-	static void digest_##name##_final(void *ctx, u8 *dest)         \
-	{                                                              \
-		name##_final(ctx, dest);                               \
+#define SSL_DIGESTS \
+	X(md5, "md5")
+
+#define X(name, ident)                                                    \
+	static void *digest_##name##_create(void)                         \
+	{                                                                 \
+		struct name##_ctx *ctx = malloc(sizeof(*ctx));            \
+		if (ctx) {                                                \
+			name##_init(ctx);                                 \
+		}                                                         \
+		return ctx;                                               \
+	}                                                                 \
+                                                                          \
+	static void digest_##name##_free(void *ctx)                       \
+	{                                                                 \
+		free(ctx);                                                \
+	}                                                                 \
+                                                                          \
+	static void digest_##name##_update(void *ctx, const void *buf,    \
+					   size_t n)                      \
+	{                                                                 \
+		name##_update(ctx, buf, n);                               \
+	}                                                                 \
+                                                                          \
+	static void digest_##name##_final(unsigned char *dest, void *ctx) \
+	{                                                                 \
+		name##_final(dest, ctx);                                  \
 	}
 
 SSL_DIGESTS
@@ -94,7 +96,6 @@ static const struct command {
 #define X(digest_name, ident) {ident, exec_digest},
     SSL_DIGESTS
 #undef X
-    {"aes", do_aes},
     {NULL, NULL},
 };
 
@@ -107,9 +108,9 @@ static const struct digest *find_digest(const char *name)
 	return NULL;
 }
 
-static int do_digest(u8 *dest, const struct digest *d, void *ctx)
+static int do_digest(unsigned char *dest, const struct digest *d, void *ctx)
 {
-	char buf[1024];
+	unsigned char buf[1024];
 
 	while (1) {
 		ssize_t nread = read(0, buf, sizeof(buf));
@@ -125,7 +126,7 @@ static int do_digest(u8 *dest, const struct digest *d, void *ctx)
 		d->update(ctx, buf, nread);
 	}
 
-	d->final(ctx, dest);
+	d->final(dest, ctx);
 	return 0;
 }
 
@@ -139,7 +140,7 @@ static int exec_digest(int argc, char **argv)
 		return -ENOENT;
 
 	void *ctx = d->create();
-	u8 *res = malloc(d->digest_len);
+	unsigned char *res = malloc(d->digest_len);
 	int rc = -ENOMEM;
 
 	if (ctx && res) {
@@ -156,21 +157,6 @@ static int exec_digest(int argc, char **argv)
 	d->free(ctx);
 	free(res);
 	return rc;
-}
-
-void do_chipher(u8 block[16], const u8 key[16], u8 rounds);
-static int do_aes(int argc, char **argv)
-{
-	(void)argc;
-	(void)argv;
-
-	u8 input[16] = {0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d,
-			0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34};
-	const u8 key[16] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
-			    0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
-
-	do_chipher(input, key, 10);
-	return 0;
 }
 
 static int print_help(int argc, char **argv)
