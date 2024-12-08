@@ -13,6 +13,7 @@ bool mp_add(u8 *string, size_t size, size_t amount);
 /* returns true if there was an carry in */
 bool mp_sub(u8 *string, size_t size, size_t amount);
 
-void mp_encode(u8 *string, size_t size, enum endian endian); 
+void mp_encode(unsigned char *restrict dest, const u8 *restrict string,
+	       size_t size, enum endian endian);
 
 #endif

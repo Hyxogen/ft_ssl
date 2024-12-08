@@ -187,7 +187,7 @@ static void sha256_do_pad(struct sha256_ctx *ctx)
 }
 
 static void sha256_create_hash(unsigned char dest[SHA256_DIGEST_LEN],
-			    const u32 state[static 4])
+			    const u32 state[static 8])
 {
 	for (size_t i = 0; i < 8; i++) {
 		to_be32(&dest[i * sizeof(u32)], state[i]);

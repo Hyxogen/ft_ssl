@@ -44,7 +44,8 @@ struct digest {
 	X(md4, "md4")       \
 	X(md5, "md5")       \
 	X(sha224, "sha224") \
-	X(sha256, "sha256")
+	X(sha256, "sha256") \
+	X(sha512, "sha512")
 
 #define X(name, ident)                                                    \
 	static void *digest_##name##_create(void)                         \
