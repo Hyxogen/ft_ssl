@@ -13,6 +13,7 @@
 #define SHA2_F 5
 #define SHA2_G 6
 #define SHA2_H 7
+#define SHA256_ROUNDS 64
 
 static_assert(CHAR_BIT % 8 == 0, "weird bits per byte");
 
