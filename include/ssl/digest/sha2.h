@@ -3,11 +3,11 @@
 
 #include <ssl/types.h>
 #include <stddef.h>
+#include <limits.h>
 
-#define SHA256_BLOCK_LEN 64
+#define SHA256_BLOCK_LEN (512/CHAR_BIT)
 #define SHA256_ROUNDS 64
-#define SHA256_HASH_NUM_WORDS 8
-#define SHA256_DIGEST_NBYTES (SHA256_HASH_NUM_WORDS * sizeof(u32))
+#define SHA256_DIGEST_LEN (256/CHAR_BIT)
 
 #define SHA224_HASH_NUM_WORDS 7
 #define SHA224_DIGEST_NBYTES (SHA224_HASH_NUM_WORDS * sizeof(u32))
@@ -20,32 +20,18 @@
 #define SHA384_HASH_NUM_WORDS 6
 #define SHA384_DIGEST_NBYTES (SHA384_HASH_NUM_WORDS * sizeof(u64))
 
-union sha256_hash {
-	u32 words[SHA256_HASH_NUM_WORDS];
-	struct {
-		u32 a;
-		u32 b;
-		u32 c;
-		u32 d;
-		u32 e;
-		u32 f;
-		u32 g;
-		u32 h;
-	};
-} __attribute__((packed));
-
 struct sha256_ctx {
 	u8 block[SHA256_BLOCK_LEN];
+	u32 state[8];
 
 	size_t offset;
-	u8 nwritten[8];
-	union sha256_hash hash;
+	u64 nwritten;
 };
 
 void sha256_init(struct sha256_ctx *ctx);
 void sha256_update(struct sha256_ctx *ctx, const void *buf, size_t n);
-void sha256_final(struct sha256_ctx *ctx, unsigned char *dest);
-static const size_t sha256_digest_len = SHA256_DIGEST_NBYTES;
+void sha256_final(unsigned char dest[SHA256_DIGEST_LEN], struct sha256_ctx *ctx);
+static const size_t sha256_digest_len = SHA256_DIGEST_LEN;
 
 struct sha224_ctx {
 	struct sha256_ctx inner;

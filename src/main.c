@@ -42,7 +42,8 @@ struct digest {
 
 #define SSL_DIGESTS   \
 	X(md4, "md4") \
-	X(md5, "md5")
+	X(md5, "md5") \
+	X(sha256, "sha256")
 
 #define X(name, ident)                                                    \
 	static void *digest_##name##_create(void)                         \
