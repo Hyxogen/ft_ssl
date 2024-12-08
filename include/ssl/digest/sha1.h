@@ -2,35 +2,23 @@
 #define SSL_DIGEST_SHA1_H
 
 #include <ssl/types.h>
-#include <stddef.h>
+#include <limits.h>
 
-#define SHA1_BLOCK_LEN 64
-#define SHA1_ROUNDS 80
-#define SHA1_HASH_NUM_WORDS 5
-#define SHA1_DIGEST_LEN (SHA1_HASH_NUM_WORDS * sizeof(u32))
-
-union sha1_hash {
-	u32 words[5];
-	struct {
-		u32 a;
-		u32 b;
-		u32 c;
-		u32 d;
-		u32 e;
-	} __attribute__((packed));
-};
+#define SHA1_BLOCK_LEN (512/CHAR_BIT)
+#define SHA1_DIGEST_LEN (160/CHAR_BIT)
 
 struct sha1_ctx {
-	u8 block[SHA1_BLOCK_LEN];
+	unsigned char block[SHA1_BLOCK_LEN];
 
 	size_t offset;
-	u8 nwritten[8];
-	union sha1_hash hash;
+	u64 nwritten;
+
+	u32 state[5];
 };
 
 void sha1_init(struct sha1_ctx *ctx);
 void sha1_update(struct sha1_ctx *ctx, const void *buf, size_t n);
-void sha1_final(struct sha1_ctx *ctx, unsigned char dest[SHA1_DIGEST_LEN]);
+void sha1_final(unsigned char dest[SHA1_DIGEST_LEN], struct sha1_ctx *ctx);
 static const size_t sha1_digest_len = SHA1_DIGEST_LEN;
 
 #endif

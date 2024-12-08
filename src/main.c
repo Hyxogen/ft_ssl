@@ -44,6 +44,7 @@ struct digest {
 	X(whirlpool, "whirlpool") \
 	X(md4, "md4")             \
 	X(md5, "md5")             \
+	X(sha1, "sha1")           \
 	X(sha224, "sha224")       \
 	X(sha256, "sha256")       \
 	X(sha384, "sha384")       \
