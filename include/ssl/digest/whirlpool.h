@@ -2,26 +2,22 @@
 #define SSL_WHIRLPOOL_H
 
 #include <ssl/types.h>
-#include <stddef.h>
 #include <limits.h>
-#include <assert.h>
 
-static_assert(CHAR_BIT == 8, "this code expects 8 bit bytes");
-
-#define W_BLOCK_SIZE 64
-#define WHIRLPOOL_DIGEST_NBYTES 64
+#define WHIRLPOOL_BLOCK_LEN (512/CHAR_BIT)
+#define WHIRLPOOL_DIGEST_LEN (512/CHAR_BIT)
 
 struct whirlpool_ctx {
-	u8 block[W_BLOCK_SIZE];
+	unsigned char block[WHIRLPOOL_BLOCK_LEN];
+	u8 state[512/8];
 
 	size_t offset;
-	u8 hash[W_BLOCK_SIZE];
 	u8 nwritten[32];
 };
 
 void whirlpool_init(struct whirlpool_ctx *ctx);
 void whirlpool_update(struct whirlpool_ctx *ctx, const void *buf, size_t n);
-void whirlpool_final(struct whirlpool_ctx *ctx, unsigned char *dest);
-static const size_t whirlpool_digest_len = WHIRLPOOL_DIGEST_NBYTES;
+void whirlpool_final(unsigned char dest[WHIRLPOOL_DIGEST_LEN], struct whirlpool_ctx *ctx);
+static const size_t whirlpool_digest_len = WHIRLPOOL_DIGEST_LEN;
 
 #endif
