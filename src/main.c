@@ -40,7 +40,8 @@ struct digest {
 	X(sha3_384, "sha3-384")   \
 	X(sha3_512, "sha3-512")*/
 
-#define SSL_DIGESTS \
+#define SSL_DIGESTS   \
+	X(md4, "md4") \
 	X(md5, "md5")
 
 #define X(name, ident)                                                    \
