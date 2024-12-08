@@ -112,7 +112,7 @@ static void md4_do_pad(struct md4_ctx *ctx)
 		padding += stop - offset;
 	}
 
-	unsigned char length[8];
+	unsigned char length[sizeof(ctx->nwritten)];
 	to_le64(length, ctx->nwritten);
 
 	md4_update(ctx, md4_padding, padding);

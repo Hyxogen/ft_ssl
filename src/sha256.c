@@ -180,7 +180,7 @@ static void sha256_do_pad(struct sha256_ctx *ctx)
 		padding += stop - offset;
 	}
 
-	unsigned char length[8];
+	unsigned char length[sizeof(ctx->nwritten)];
 	to_be64(length, ctx->nwritten);
 
 	sha256_update(ctx, sha256_padding, padding);

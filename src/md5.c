@@ -143,7 +143,7 @@ static void md5_do_pad(struct md5_ctx *ctx)
 		padding += stop - offset;
 	}
 
-	unsigned char length[8];
+	unsigned char length[sizeof(ctx->nwritten)];
 	to_le64(length, ctx->nwritten);
 
 	md5_update(ctx, md5_padding, padding);
